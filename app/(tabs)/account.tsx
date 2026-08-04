@@ -28,6 +28,7 @@ import {
 } from '@/features/account/components/AccountList';
 import { COUNTRY_OPTIONS } from '@/features/profile-location/constants';
 import { useLogout } from '@/hooks/auth/useLogout';
+import { formatProfileName } from '@/lib/profile-name';
 import { useAccountStore } from '@/stores/account-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -72,8 +73,8 @@ export default function AccountScreen() {
   };
 
   const accountName =
-    defaultProfile?.displayName ||
-    user?.defaultProfile?.displayName ||
+    formatProfileName(defaultProfile) ||
+    formatProfileName(user?.defaultProfile) ||
     user?.accountName ||
     'Add your name';
   const accountEmail =

@@ -1,78 +1,109 @@
-import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Wallet } from 'lucide-react-native';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { ChevronLeft } from 'lucide-react-native';
 import { Header, KeyboardAwareScrollView, Typography } from '@/components/ui';
 import { FormCard, FormField } from '@/features/create-event/components/FormFields';
-import { LayoutPicker } from '@/features/settings/components/LayoutPicker';
+import { SettingsSavedModal } from '@/features/settings/components/SettingsSavedModal';
 import { SettingsSectionTitle } from '@/features/settings/components/SettingsSectionTitle';
 import { SettingsToggleRow } from '@/features/settings/components/SettingsToggleRow';
-import { WalletPassSection } from '@/features/settings/components/WalletPassSection';
-import { useSettingsStore } from '@/stores/settings-store';
+import {
+  WalletLifetimeExplanation,
+  WalletPassSection,
+} from '@/features/settings/components/WalletPassSection';
+import { settingsQueryKey } from '@/features/settings/settings-query-key';
+import {
+  getUserSettings,
+  updateUserSettings,
+  type UserSettingsResponse,
+} from '@/services/settings/settings.api';
+import { useAuthStore } from '@/stores/auth-store';
 import { colors, radius, spacing } from '@/theme/tokens';
+
+export { settingsQueryKey };
+
+function getSettingsErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const message = error.response?.data?.message;
+    if (typeof message === 'string') {
+      return message;
+    }
+    if (Array.isArray(message) && typeof message[0] === 'string') {
+      return message[0];
+    }
+  }
+
+  return 'Unable to load settings. Please try again.';
+}
 
 export default function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const settings = useSettingsStore();
+  const queryClient = useQueryClient();
+  const authUser = useAuthStore((state) => state.user);
 
-  const [ticketLayout, setTicketLayout] = useState(settings.ticketLayout);
-  const [walletPassesRemaining, setWalletPassesRemaining] = useState(
-    settings.walletPassesRemaining,
-  );
-  const [enableAppleWalletTransfers, setEnableAppleWalletTransfers] = useState(
-    settings.enableAppleWalletTransfers,
-  );
-  const [useGoogleWalletBadge, setUseGoogleWalletBadge] = useState(settings.useGoogleWalletBadge);
-  const [showTransferAccepted, setShowTransferAccepted] = useState(settings.showTransferAccepted);
-  const [acceptedByName, setAcceptedByName] = useState(settings.acceptedByName);
-  const [enableTransferFeeInterruption, setEnableTransferFeeInterruption] = useState(
-    settings.enableTransferFeeInterruption,
-  );
-  const [transferFeeAmount, setTransferFeeAmount] = useState(settings.transferFeeAmount);
-  const [enableMaxTicketsInterruption, setEnableMaxTicketsInterruption] = useState(
-    settings.enableMaxTicketsInterruption,
-  );
-  const [maxTicketsThreshold, setMaxTicketsThreshold] = useState(settings.maxTicketsThreshold);
+  const settingsQuery = useQuery({
+    queryKey: settingsQueryKey,
+    queryFn: getUserSettings,
+  });
 
-  const handleTransferFeeToggle = (value: boolean) => {
-    setEnableTransferFeeInterruption(value);
-    if (value) {
-      setEnableMaxTicketsInterruption(false);
+  const [enableWalletForTicketTransfers, setEnableWalletForTicketTransfers] = useState(false);
+  const [enableTransferFeeInterruption, setEnableTransferFeeInterruption] = useState(false);
+  const [transferFeePerTicket, setTransferFeePerTicket] = useState('');
+  const [enableMinTicketsInterruption, setEnableMinTicketsInterruption] = useState(false);
+  const [minTicketsPerTransfer, setMinTicketsPerTransfer] = useState('');
+  const [enableTransferAcceptanceAuthorization, setEnableTransferAcceptanceAuthorization] =
+    useState(false);
+  const [savedModalVisible, setSavedModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (!settingsQuery.data) {
+      return;
     }
-  };
 
-  const handleMaxTicketsToggle = (value: boolean) => {
-    setEnableMaxTicketsInterruption(value);
-    if (value) {
-      setEnableTransferFeeInterruption(false);
-    }
-  };
+    setEnableWalletForTicketTransfers(settingsQuery.data.enableWalletForTicketTransfers);
+    setEnableTransferFeeInterruption(settingsQuery.data.enableTransferFeeInterruption);
+    setTransferFeePerTicket(settingsQuery.data.transferFeePerTicket);
+    setEnableMinTicketsInterruption(settingsQuery.data.enableMinTicketsInterruption);
+    setMinTicketsPerTransfer(settingsQuery.data.minTicketsPerTransfer);
+    setEnableTransferAcceptanceAuthorization(
+      settingsQuery.data.enableTransferAcceptanceAuthorization,
+    );
+  }, [settingsQuery.data]);
 
-  const handleWalletPurchase = (quantity: number) => {
-    settings.addWalletPasses(quantity);
-    setWalletPassesRemaining((current) => current + quantity);
-  };
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      updateUserSettings({
+        enableWalletForTicketTransfers,
+        enableTransferFeeInterruption,
+        transferFeePerTicket: enableTransferFeeInterruption ? transferFeePerTicket.trim() : '',
+        enableMinTicketsInterruption,
+        minTicketsPerTransfer: enableMinTicketsInterruption ? minTicketsPerTransfer.trim() : '',
+        enableTransferAcceptanceAuthorization,
+      }),
+    onSuccess: (response) => {
+      queryClient.setQueryData<UserSettingsResponse>(settingsQueryKey, response);
+      setSavedModalVisible(true);
+    },
+  });
 
-  const handleSave = () => {
-    settings.updateSettings({
-      ticketLayout,
-      walletPassesRemaining,
-      enableAppleWalletTransfers,
-      useGoogleWalletBadge,
-      showTransferAccepted,
-      acceptedByName,
-      enableTransferFeeInterruption,
-      transferFeeAmount,
-      enableMaxTicketsInterruption,
-      maxTicketsThreshold,
-    });
+  const loadError = settingsQuery.error ? getSettingsErrorMessage(settingsQuery.error) : null;
+  const saveError = saveMutation.error ? getSettingsErrorMessage(saveMutation.error) : null;
 
-    Alert.alert('Settings saved', 'Your settings have been updated.', [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
-  };
+  const unlimitedWalletPasses = settingsQuery.data?.unlimitedWalletPasses ?? false;
+  const walletPassesRemaining = settingsQuery.data?.walletPassesRemaining ?? 0;
+  const isLifetimeAccess = authUser?.accessType === 'LIFETIME';
+
+  if (settingsQuery.isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.neutral[100], justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.pulse[600]} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
@@ -100,49 +131,44 @@ export default function SettingsScreen() {
           gap: spacing.lg,
         }}
       >
-        <FormCard>
-          <SettingsSectionTitle>App layout</SettingsSectionTitle>
-          <LayoutPicker value={ticketLayout} onChange={setTicketLayout} />
-        </FormCard>
+        {loadError ? (
+          <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
+            {loadError}
+          </Typography>
+        ) : null}
 
         <FormCard>
-          <SettingsSectionTitle>Apple Wallet</SettingsSectionTitle>
-          <WalletPassSection
-            walletPassesRemaining={walletPassesRemaining}
-            onPurchase={handleWalletPurchase}
-          />
+          <SettingsSectionTitle>Wallet</SettingsSectionTitle>
 
           <SettingsToggleRow
-            label="Enable Apple Wallet for ticket transfers"
-            description="Buy wallet pass credits to enable Apple Wallet for recipients."
-            value={enableAppleWalletTransfers}
-            onValueChange={setEnableAppleWalletTransfers}
+            label="Enable wallet for ticket transfers"
+            description={
+              isLifetimeAccess
+                ? 'Allow recipients to add accepted tickets to Apple Wallet or Google Wallet on the acceptance website.'
+                : 'Purchase wallet pass credits for recipients on the acceptance website.'
+            }
+            value={enableWalletForTicketTransfers}
+            onValueChange={setEnableWalletForTicketTransfers}
           />
 
-          <SettingsToggleRow
-            label="Use Google Wallet badge"
-            value={useGoogleWalletBadge}
-            onValueChange={setUseGoogleWalletBadge}
-            leftIcon={<Wallet size={18} color={colors.neutral[600]} />}
-          />
-        </FormCard>
+          {enableWalletForTicketTransfers && isLifetimeAccess ? (
+            <View style={{ marginTop: spacing.sm }}>
+              <WalletLifetimeExplanation />
+            </View>
+          ) : null}
 
-        <FormCard>
-          <SettingsSectionTitle>Ticket details</SettingsSectionTitle>
-
-          <SettingsToggleRow
-            label="Show transfer accepted on ticket cards"
-            value={showTransferAccepted}
-            onValueChange={setShowTransferAccepted}
-          />
-
-          <FormField
-            label="Accepted by (name shown on ticket)"
-            value={acceptedByName}
-            onChangeText={setAcceptedByName}
-            placeholder="Mary Flores"
-            autoCapitalize="words"
-          />
+          {enableWalletForTicketTransfers && !isLifetimeAccess ? (
+            <View style={{ gap: spacing.lg, marginTop: spacing.sm }}>
+              <WalletPassSection
+                accountCreatedAt={authUser?.createdAt ?? new Date(0).toISOString()}
+                walletPassesRemaining={walletPassesRemaining}
+                unlimitedWalletPasses={unlimitedWalletPasses}
+                onPurchaseSuccess={async () => {
+                  await queryClient.invalidateQueries({ queryKey: settingsQueryKey });
+                }}
+              />
+            </View>
+          ) : null}
         </FormCard>
 
         <FormCard>
@@ -151,49 +177,80 @@ export default function SettingsScreen() {
           <SettingsToggleRow
             label="Enable transfer fee interruption screen"
             value={enableTransferFeeInterruption}
-            onValueChange={handleTransferFeeToggle}
+            onValueChange={setEnableTransferFeeInterruption}
           />
 
-          <FormField
-            label="Transfer fee shown on interruption screen"
-            value={transferFeeAmount}
-            onChangeText={setTransferFeeAmount}
-            placeholder="110.10"
-            keyboardType="decimal-pad"
-          />
+          {enableTransferFeeInterruption ? (
+            <FormField
+              label="Transfer fee per ticket"
+              value={transferFeePerTicket}
+              onChangeText={setTransferFeePerTicket}
+              placeholder="110.10"
+              keyboardType="decimal-pad"
+            />
+          ) : null}
 
           <SettingsToggleRow
-            label="Enable maximum tickets per transfer interruption"
-            value={enableMaxTicketsInterruption}
-            onValueChange={handleMaxTicketsToggle}
+            label="Enable minimum tickets per transfer interruption"
+            value={enableMinTicketsInterruption}
+            onValueChange={setEnableMinTicketsInterruption}
           />
 
-          <FormField
-            label="Ticket count that should trigger interruption"
-            value={maxTicketsThreshold}
-            onChangeText={setMaxTicketsThreshold}
-            placeholder="2"
-            keyboardType="number-pad"
-            hint="Show interruption when selected tickets are equal to or greater than this number. Only one interruption can be active at a time."
+          {enableMinTicketsInterruption ? (
+            <FormField
+              label="Minimum tickets per transfer"
+              value={minTicketsPerTransfer}
+              onChangeText={setMinTicketsPerTransfer}
+              placeholder="2"
+              keyboardType="number-pad"
+              hint="Show interruption when fewer than this many tickets are selected."
+            />
+          ) : null}
+
+          <SettingsToggleRow
+            label="Authorize transfer acceptance"
+            description="Recipients must wait for you to authorize before they can accept tickets on the web."
+            value={enableTransferAcceptanceAuthorization}
+            onValueChange={setEnableTransferAcceptanceAuthorization}
           />
         </FormCard>
 
+        {saveError ? (
+          <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
+            {saveError}
+          </Typography>
+        ) : null}
+
         <Pressable
           accessibilityRole="button"
-          onPress={handleSave}
+          disabled={saveMutation.isPending || Boolean(loadError)}
+          onPress={() => saveMutation.mutate()}
           style={{
             minHeight: 48,
             borderRadius: radius.md,
             backgroundColor: colors.pulse[600],
             alignItems: 'center',
             justifyContent: 'center',
+            opacity: saveMutation.isPending || loadError ? 0.7 : 1,
           }}
         >
-          <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>
-            Save
-          </Typography>
+          {saveMutation.isPending ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>
+              Save
+            </Typography>
+          )}
         </Pressable>
       </KeyboardAwareScrollView>
+
+      <SettingsSavedModal
+        visible={savedModalVisible}
+        onClose={() => {
+          setSavedModalVisible(false);
+          router.back();
+        }}
+      />
     </View>
   );
 }

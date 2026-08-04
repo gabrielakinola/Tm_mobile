@@ -1,4 +1,8 @@
 import axios, { type AxiosError } from 'axios';
+import {
+  SUBSCRIPTION_EXPIRED_CODE,
+  type SubscriptionExpiredErrorResponse,
+} from '@/lib/subscription-billing';
 import type { ActiveSessionConflictError } from '@/services/auth/types';
 
 export const ACTIVE_SESSION_CONFLICT_CODE = 'ACTIVE_SESSION_CONFLICT';
@@ -14,9 +18,23 @@ export function isActiveSessionConflict(
   );
 }
 
+export function isSubscriptionExpiredError(
+  error: unknown,
+): error is AxiosError<SubscriptionExpiredErrorResponse> {
+  return (
+    axios.isAxiosError(error) &&
+    error.response?.status === 403 &&
+    error.response.data?.code === SUBSCRIPTION_EXPIRED_CODE
+  );
+}
+
 export function getLoginErrorMessage(error: unknown): string {
   if (isActiveSessionConflict(error)) {
     return error.response?.data.message ?? 'This account is already signed in on another device.';
+  }
+
+  if (isSubscriptionExpiredError(error)) {
+    return '';
   }
 
   if (axios.isAxiosError(error)) {

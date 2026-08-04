@@ -61,7 +61,32 @@ export function EventDetailTicketCard({ ticket, ticketMode, label }: EventDetail
             <TicketField label="ROW" value={ticket.row ?? ''} align="center" />
             <TicketField label="SEAT" value={ticket.seat ?? ''} align="right" />
           </>
-        ) : null}
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              alignSelf: 'stretch',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography
+              style={{
+                color: colors.neutral[900],
+                fontSize: 16,
+                lineHeight: 20,
+                fontWeight: '800',
+                letterSpacing: 0.8,
+                textAlign: 'right',
+              }}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              GENERAL ADMISSION
+            </Typography>
+          </View>
+        )}
       </View>
     </View>
   );

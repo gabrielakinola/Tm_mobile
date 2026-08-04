@@ -1,18 +1,20 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
   ArrowLeftRight,
   CalendarDays,
   CalendarPlus2,
   Infinity,
+  KeyRound,
   Mail,
   Settings,
   UserRound,
 } from 'lucide-react-native';
-import { Header, Typography } from '@/components/ui';
-import { getSubscriptionDaysLeft } from '@/lib/subscription';
+import { Header, Typography, useToast } from '@/components/ui';
+import { ChangePasswordModal } from '@/features/for-you/components/ChangePasswordModal';
+import { getSubscriptionDaysLeft, getSubscriptionDaysLeftTone } from '@/lib/subscription';
 import { useAuthStore } from '@/stores/auth-store';
 import { useTheme } from '@/theme';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -69,20 +71,41 @@ const QUICK_ACTION_ROWS = [
   QUICK_ACTIONS.slice(4, 6),
 ];
 
-/** Memoji-style cartoon avatar; seed keeps it stable per account. */
-function memojiAvatarUrl(seed: string): string {
-  const value = encodeURIComponent(seed.trim() || 'guest');
-  return `https://api.dicebear.com/9.x/avataaars/png?seed=${value}&size=128&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
-}
-
 export default function ForYouScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { show } = useToast();
   const user = useAuthStore((state) => state.user);
   const isLifetimeAccess = user?.accessType === 'LIFETIME';
   const daysLeft = user ? getSubscriptionDaysLeft(user.subscriptionExpiresAt) : 0;
+  const daysLeftTone = getSubscriptionDaysLeftTone(daysLeft);
+
+  const daysLeftBadgeStyle = isLifetimeAccess
+    ? { backgroundColor: colors.neutral[900] }
+    : daysLeftTone === 'green'
+      ? { backgroundColor: colors.success[50] }
+      : daysLeftTone === 'warning'
+        ? { backgroundColor: colors.warning[50] }
+        : { backgroundColor: colors.error[50] };
+
+  const daysLeftNumberColor = isLifetimeAccess
+    ? colors.white
+    : daysLeftTone === 'green'
+      ? colors.success[700]
+      : daysLeftTone === 'warning'
+        ? colors.warning[700]
+        : colors.error[700];
+
+  const daysLeftCaptionColor = isLifetimeAccess
+    ? colors.neutral[300]
+    : daysLeftTone === 'green'
+      ? colors.success[700]
+      : daysLeftTone === 'warning'
+        ? colors.warning[700]
+        : colors.error[700];
   const accountEmail = user?.email || '';
+  const [changePasswordVisible, setChangePasswordVisible] = useState(false);
 
   const handleQuickAction = (id: string) => {
     if (id === 'create') {
@@ -143,78 +166,118 @@ export default function ForYouScreen() {
               borderColor: colors.neutral[200],
               backgroundColor: colors.neutral[0],
               padding: spacing.md,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              gap: spacing.md,
               marginBottom: spacing.lg,
             }}
           >
             <View
               style={{
-                flex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: spacing.md,
-                paddingRight: spacing.sm,
+                justifyContent: 'space-between',
               }}
             >
               <View
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: radius.full,
-                  overflow: 'hidden',
-                  backgroundColor: colors.neutral[100],
-                }}
-              >
-                <Image
-                  source={{ uri: memojiAvatarUrl(accountEmail || user?.id || 'guest') }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="cover"
-                  accessibilityLabel="Account avatar"
-                />
-              </View>
-              <Typography
-                style={{
                   flex: 1,
-                  color: colors.neutral[900],
-                  fontWeight: '700',
-                  fontSize: 15,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.md,
+                  paddingRight: spacing.sm,
                 }}
-                numberOfLines={1}
               >
-                {accountEmail || 'Signed in'}
-              </Typography>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: radius.full,
+                    backgroundColor: colors.neutral[200],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  accessibilityLabel="Account avatar"
+                >
+                  <UserRound size={24} color={colors.neutral[500]} strokeWidth={1.8} />
+                </View>
+                <Typography
+                  style={{
+                    flex: 1,
+                    color: colors.neutral[900],
+                    fontWeight: '700',
+                    fontSize: 15,
+                  }}
+                  numberOfLines={1}
+                >
+                  {accountEmail || 'Signed in'}
+                </Typography>
+              </View>
+
+              <View
+                style={{
+                  width: 58,
+                  borderRadius: radius.md,
+                  paddingVertical: spacing.sm,
+                  alignItems: 'center',
+                  ...daysLeftBadgeStyle,
+                }}
+              >
+                {isLifetimeAccess ? (
+                  <Infinity size={20} color={colors.white} strokeWidth={2.5} />
+                ) : (
+                  <Typography
+                    style={{ color: daysLeftNumberColor, fontWeight: '700', fontSize: 17 }}
+                  >
+                    {daysLeft}
+                  </Typography>
+                )}
+                <Typography
+                  style={{
+                    color: daysLeftCaptionColor,
+                    fontSize: 8,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    fontWeight: '600',
+                  }}
+                >
+                  Days left
+                </Typography>
+              </View>
             </View>
 
-            <View
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setChangePasswordVisible(true)}
               style={{
-                width: 58,
-                borderRadius: radius.md,
-                backgroundColor: colors.neutral[900],
-                paddingVertical: spacing.sm,
+                minHeight: 44,
+                flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'space-between',
+                borderTopWidth: 1,
+                borderTopColor: colors.neutral[200],
+                paddingTop: spacing.md,
               }}
             >
-              {isLifetimeAccess ? (
-                <Infinity size={20} color={colors.white} strokeWidth={2.5} />
-              ) : (
-                <Typography style={{ color: colors.white, fontWeight: '700', fontSize: 17 }}>
-                  {daysLeft}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <View
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: radius.sm,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: colors.pulse[50],
+                  }}
+                >
+                  <KeyRound size={16} color={colors.pulse[600]} />
+                </View>
+                <Typography style={{ color: colors.neutral[900], fontSize: 14, fontWeight: '700' }}>
+                  Change password
                 </Typography>
-              )}
-              <Typography
-                style={{
-                  color: colors.neutral[300],
-                  fontSize: 8,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  fontWeight: '600',
-                }}
-              >
-                Days left
+              </View>
+              <Typography style={{ color: colors.pulse[600], fontSize: 14, fontWeight: '600' }}>
+                Update
               </Typography>
-            </View>
+            </Pressable>
           </View>
         </View>
 
@@ -296,6 +359,15 @@ export default function ForYouScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <ChangePasswordModal
+        visible={changePasswordVisible}
+        onClose={() => setChangePasswordVisible(false)}
+        onSuccess={() => {
+          setChangePasswordVisible(false);
+          show({ message: 'Password updated successfully.', variant: 'success' });
+        }}
+      />
     </View>
   );
 }

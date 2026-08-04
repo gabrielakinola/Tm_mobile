@@ -7,6 +7,11 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export type LoginInput = LoginCredentials & DeviceInfo;
 
 export async function loginRequest(input: LoginInput): Promise<LoginResponse> {
@@ -21,6 +26,13 @@ export async function forceLoginRequest(input: LoginInput): Promise<LoginRespons
 
 export async function logoutRequest(): Promise<LogoutResponse> {
   const response = await apiClient.post<LogoutResponse>('/auth/logout');
+  return response.data;
+}
+
+export async function changePasswordRequest(
+  input: ChangePasswordInput,
+): Promise<{ success: true }> {
+  const response = await apiClient.post<{ success: true }>('/auth/change-password', input);
   return response.data;
 }
 

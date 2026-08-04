@@ -8,22 +8,20 @@ const TICKETMASTER_BLUE = '#0057D9';
 
 export interface TransferToRecipientFooterProps {
   bottomInset?: number;
-  showTransferButton?: boolean;
-  ticketCount?: number;
-  transferLoading?: boolean;
+  primaryAction?: {
+    label: string;
+    loading?: boolean;
+    onPress: () => void;
+  } | null;
   onBack?: () => void;
-  onTransfer?: () => void;
 }
 
 export const TransferToRecipientFooter = memo(function TransferToRecipientFooter({
   bottomInset = 0,
-  showTransferButton = false,
-  ticketCount = 0,
-  transferLoading = false,
+  primaryAction = null,
   onBack,
-  onTransfer,
 }: TransferToRecipientFooterProps) {
-  const transferLabel = `Transfer ${ticketCount} ${ticketCount === 1 ? 'Ticket' : 'Tickets'}`;
+  const transferLoading = primaryAction?.loading ?? false;
 
   return (
     <View style={[styles.footer, { paddingBottom: Math.max(bottomInset, spacing.md) }]}>
@@ -39,20 +37,20 @@ export const TransferToRecipientFooter = memo(function TransferToRecipientFooter
         <Typography style={styles.backLabel}>Back</Typography>
       </Pressable>
 
-      {showTransferButton ? (
+      {primaryAction ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={transferLabel}
+          accessibilityLabel={primaryAction.label}
           accessibilityState={{ disabled: transferLoading, busy: transferLoading }}
           disabled={transferLoading}
-          onPress={onTransfer}
+          onPress={primaryAction.onPress}
           style={({ pressed }) => pressed && !transferLoading && styles.pressed}
         >
           <View style={[styles.transferButton, transferLoading && styles.transferButtonDisabled]}>
             {transferLoading ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={styles.transferLabel}>{transferLabel}</Text>
+              <Text style={styles.transferLabel}>{primaryAction.label}</Text>
             )}
           </View>
         </Pressable>

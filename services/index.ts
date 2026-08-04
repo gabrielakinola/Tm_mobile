@@ -2,6 +2,7 @@ export * from './auth/auth.api';
 export * from './auth/types';
 export * from './events/events.api';
 export * from './events/types';
+export * from './payments/payments.api';
 export * from './profiles/profiles.api';
 export * from './profiles/types';
 export * from './ticketmaster/ticketmaster.api';

@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
+import { isSubscriptionExpiredError } from '@/lib/auth-errors';
 import { clearAccessToken, getAccessToken } from '@/lib/secure-storage';
+import { isMonthlySubscriptionExpired } from '@/lib/subscription';
 import { isUnauthorizedError } from '@/services/api/client';
 import { getCurrentUserRequest } from '@/services/auth/auth.api';
 import type { AuthUser } from '@/services/auth/types';
@@ -28,10 +30,18 @@ export function useAuthBootstrap() {
 
     try {
       const user = await getCurrentUserRequest();
+
+      if (user.role !== 'SUPERADMIN' && isMonthlySubscriptionExpired(user)) {
+        await clearAccessToken();
+        clearAuth();
+        useProfileStore.getState().clearProfile();
+        return;
+      }
+
       setAuthenticated(user, token);
       syncDefaultProfile(user);
     } catch (error) {
-      if (isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error) || isSubscriptionExpiredError(error)) {
         await clearAccessToken();
       }
 

@@ -2,7 +2,8 @@ export type ProfileCountry = 'US' | 'CA' | 'GB' | 'DE' | 'FR';
 
 export interface DisplayProfile {
   id: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
   displayEmail: string;
   city: string;
   mobileLast4: string;
@@ -13,7 +14,8 @@ export interface DisplayProfile {
 }
 
 export interface CreateProfileInput {
-  displayName: string;
+  firstName: string;
+  lastName?: string;
   displayEmail?: string;
   city?: string;
   mobileLast4?: string;
@@ -22,7 +24,8 @@ export interface CreateProfileInput {
 }
 
 export interface UpdateProfileInput {
-  displayName?: string;
+  firstName?: string;
+  lastName?: string;
   displayEmail?: string;
   city?: string;
   mobileLast4?: string;

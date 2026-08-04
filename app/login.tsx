@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import {
@@ -11,30 +10,79 @@ import {
   KeyboardAwareScrollView,
   TicketmasterHeaderLogo,
   Typography,
+  useToast,
 } from '@/components/ui';
+import { API_BASE_URL } from '@/constants/app';
 import { ActiveSessionConflictModal } from '@/features/auth/components/ActiveSessionConflictModal';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas/login.schema';
+import { SubscriptionExpiredModal } from '@/features/subscription/components/SubscriptionExpiredModal';
 import { useForceLogin, useLogin } from '@/hooks/auth/useLogin';
-import { getLoginErrorMessage, isActiveSessionConflict } from '@/lib/auth-errors';
+import {
+  getLoginErrorMessage,
+  isActiveSessionConflict,
+  isSubscriptionExpiredError,
+} from '@/lib/auth-errors';
+import { openFlutterwaveCheckout } from '@/lib/flutterwave-checkout';
+import {
+  toSubscriptionRenewalDetails,
+  type SubscriptionRenewalDetails,
+} from '@/lib/subscription-billing';
 import type { ActiveSessionSummary } from '@/services/auth/types';
+import {
+  getFlutterwavePaymentStatusRequest,
+  initiateSubscriptionPaymentRequest,
+} from '@/services/payments/payments.api';
 import { useTheme } from '@/theme';
 import { colors, radius, spacing } from '@/theme/tokens';
+
+const API_URL_BANNER_MS = 8000;
+const PAYMENT_STATUS_ATTEMPTS = 6;
+const PAYMENT_STATUS_DELAY_MS = 1500;
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForPaymentVerification(txRef: string): Promise<boolean> {
+  for (let attempt = 0; attempt < PAYMENT_STATUS_ATTEMPTS; attempt += 1) {
+    const status = await getFlutterwavePaymentStatusRequest(txRef);
+    if (status.verified) {
+      return true;
+    }
+    if (attempt < PAYMENT_STATUS_ATTEMPTS - 1) {
+      await wait(PAYMENT_STATUS_DELAY_MS);
+    }
+  }
+  return false;
+}
 
 export default function LoginScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const { show: showToast } = useToast();
   const loginMutation = useLogin();
   const forceLoginMutation = useForceLogin();
+  const [renewalDetails, setRenewalDetails] = useState<SubscriptionRenewalDetails | null>(null);
+  const [subscriptionModalDismissed, setSubscriptionModalDismissed] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [conflictSession, setConflictSession] = useState<ActiveSessionSummary | null>(null);
   const [pendingCredentials, setPendingCredentials] = useState<LoginFormValues | null>(null);
   const [forceError, setForceError] = useState<string | null>(null);
+  const [showApiUrlBanner, setShowApiUrlBanner] = useState(true);
+
+  useEffect(() => {
+    console.log(`[API] Login screen using base URL: ${API_BASE_URL}`);
+    const timer = setTimeout(() => setShowApiUrlBanner(false), API_URL_BANNER_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -51,14 +99,34 @@ export default function LoginScreen() {
     setForceError(null);
   };
 
+  const openSubscriptionExpired = (details: SubscriptionRenewalDetails) => {
+    setFormError(null);
+    setPayError(null);
+    setRenewalDetails(details);
+    setSubscriptionModalDismissed(false);
+  };
+
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     setForceError(null);
 
     try {
       await loginMutation.mutateAsync(values);
-      router.replace('/(tabs)/discover');
     } catch (error) {
+      if (isSubscriptionExpiredError(error)) {
+        const details = toSubscriptionRenewalDetails(
+          error.response?.data ?? {
+            message: '',
+            code: 'SUBSCRIPTION_EXPIRED',
+          },
+        );
+        if (!details) {
+          setFormError('Your subscription has expired. Please contact the administrator to renew.');
+          return;
+        }
+        openSubscriptionExpired(details);
+        return;
+      }
       if (isActiveSessionConflict(error)) {
         setPendingCredentials(values);
         setConflictSession(error.response?.data.activeSession ?? null);
@@ -76,11 +144,102 @@ export default function LoginScreen() {
       await forceLoginMutation.mutateAsync(pendingCredentials);
       setConflictSession(null);
       setPendingCredentials(null);
-      router.replace('/(tabs)/discover');
     } catch (error) {
+      if (isSubscriptionExpiredError(error)) {
+        setConflictSession(null);
+        setPendingCredentials(null);
+        setForceError(null);
+        const details = toSubscriptionRenewalDetails(
+          error.response?.data ?? {
+            message: '',
+            code: 'SUBSCRIPTION_EXPIRED',
+          },
+        );
+        if (!details) {
+          setFormError('Your subscription has expired. Please contact the administrator to renew.');
+          return;
+        }
+        openSubscriptionExpired(details);
+        return;
+      }
       setForceError(getLoginErrorMessage(error));
     }
   };
+
+  const handleSubscriptionExpiredClose = () => {
+    if (paying) return;
+    setSubscriptionModalDismissed(true);
+    setPayError(null);
+  };
+
+  const handlePaySubscription = async () => {
+    if (!renewalDetails?.subscriptionId || paying) {
+      return;
+    }
+
+    const email = getValues('email').trim();
+    if (!email) {
+      setPayError('Enter your email on the login form before paying.');
+      return;
+    }
+
+    setPaying(true);
+    setPayError(null);
+
+    try {
+      const { checkoutUrl, txRef } = await initiateSubscriptionPaymentRequest({
+        subscriptionId: renewalDetails.subscriptionId,
+        email,
+      });
+
+      const browserResult = await openFlutterwaveCheckout(checkoutUrl);
+
+      if (browserResult.type !== 'success') {
+        setPayError('Payment was cancelled. You can try again when you are ready.');
+        return;
+      }
+
+      const resolvedTxRef = browserResult.txRef ?? txRef;
+      if (!resolvedTxRef) {
+        setPayError('Payment finished, but we could not confirm the transaction reference.');
+        return;
+      }
+
+      const verified = await waitForPaymentVerification(resolvedTxRef);
+      if (!verified) {
+        setPayError(
+          'Payment is still processing. Wait a moment, then tap Pay again to retry verification.',
+        );
+        return;
+      }
+
+      setSubscriptionModalDismissed(true);
+      setPayError(null);
+      showToast({
+        variant: 'success',
+        duration: 5000,
+        message: 'Payment successful. Your subscription has been renewed. Please sign in.',
+      });
+    } catch (error) {
+      const message =
+        error && typeof error === 'object' && 'response' in error
+          ? // axios-shaped
+            ((error as { response?: { data?: { message?: string | string[] } } }).response?.data
+              ?.message ?? null)
+          : null;
+      const normalized =
+        typeof message === 'string'
+          ? message
+          : Array.isArray(message)
+            ? message[0]
+            : 'Unable to start payment. Please try again.';
+      setPayError(normalized || 'Unable to start payment. Please try again.');
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const showSubscriptionExpiredModal = renewalDetails != null && !subscriptionModalDismissed;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.neutral[950] }}>
@@ -129,6 +288,26 @@ export default function LoginScreen() {
               borderColor: colors.neutral[200],
             }}
           >
+            {showApiUrlBanner ? (
+              <View
+                style={{
+                  backgroundColor: colors.neutral[100],
+                  borderRadius: radius.md,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.sm,
+                  borderWidth: 1,
+                  borderColor: colors.neutral[200],
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  style={{ color: colors.neutral[600], fontSize: 11, lineHeight: 16 }}
+                >
+                  API: {API_BASE_URL}
+                </Typography>
+              </View>
+            ) : null}
+
             <View style={{ gap: spacing.xs }}>
               <Typography variant="h3" style={{ color: colors.neutral[900] }}>
                 Welcome back
@@ -243,6 +422,15 @@ export default function LoginScreen() {
         error={forceError}
         onClose={closeConflictModal}
         onForceLogoutAndContinue={() => void handleForceLogoutAndContinue()}
+      />
+
+      <SubscriptionExpiredModal
+        visible={showSubscriptionExpiredModal}
+        renewal={renewalDetails}
+        paying={paying}
+        payError={payError}
+        onClose={handleSubscriptionExpiredClose}
+        onPay={() => void handlePaySubscription()}
       />
     </View>
   );

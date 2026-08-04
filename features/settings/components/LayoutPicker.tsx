@@ -1,7 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { Layers } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
-import type { TicketLayout } from '@/stores/settings-store';
+import type { TicketLayout } from '@/features/settings/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 interface LayoutPickerProps {

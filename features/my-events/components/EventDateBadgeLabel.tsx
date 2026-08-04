@@ -1,64 +1,121 @@
-import { Text, View } from 'react-native';
-import { TicketmasterText } from '@/components/ui/TicketmasterText';
+import { type ReactNode } from 'react';
+import { Text } from 'react-native';
 import { getEventBadgeDateParts } from '@/lib/event-datetime';
 import { colors } from '@/theme/tokens';
 
-const DATE_FONT_SIZE = 18;
-const DOT_FONT_SIZE = DATE_FONT_SIZE * 2;
+const DATE_FONT_SIZE = 12;
+const DOT_SEPARATOR_OFFSET_Y = 2.5;
+const SHRINK_TO_FIT_MIN_SCALE = 0.65;
 
-const dateTextStyle = {
-  color: colors.white,
-  fontSize: DATE_FONT_SIZE,
-  lineHeight: 22,
-  fontWeight: '700' as const,
-  letterSpacing: 0.3,
-};
+function getSegmentTextStyle(fontSize: number, lineHeightMultiplier = 1.22) {
+  const lineHeight = Math.round(fontSize * lineHeightMultiplier);
+  return {
+    color: colors.white,
+    fontSize,
+    lineHeight,
+    fontWeight: '700' as const,
+    letterSpacing: -0.25,
+    includeFontPadding: false,
+  };
+}
+
+function buildInlineLabel(
+  parts: string[],
+  fontSize: number,
+  dotFontSize: number,
+  shrinkToFit: boolean,
+): ReactNode[] {
+  const lineHeight = Math.round(fontSize * 1.22);
+  const nodes: ReactNode[] = [];
+
+  parts.forEach((part, partIndex) => {
+    if (partIndex > 0) {
+      if (shrinkToFit) {
+        nodes.push(' · ');
+      } else {
+        nodes.push(
+          <Text
+            key={`date-dot-${partIndex}`}
+            style={{
+              color: colors.white,
+              fontSize: dotFontSize,
+              lineHeight,
+              fontWeight: '700',
+              includeFontPadding: false,
+              transform: [{ translateY: DOT_SEPARATOR_OFFSET_Y }],
+            }}
+          >
+            {' · '}
+          </Text>,
+        );
+      }
+    }
+
+    const commaSegments = part.split(',');
+    commaSegments.forEach((segment, segmentIndex) => {
+      nodes.push(segment);
+      if (segmentIndex < commaSegments.length - 1) {
+        nodes.push(
+          <Text
+            key={`date-comma-${partIndex}-${segmentIndex}`}
+            style={
+              shrinkToFit
+                ? { fontFamily: 'NotoSerif_400Regular' }
+                : {
+                    fontFamily: 'NotoSerif_400Regular',
+                    fontSize: fontSize * 1.35,
+                    lineHeight,
+                    color: colors.white,
+                    includeFontPadding: false,
+                  }
+            }
+          >
+            ,
+          </Text>,
+        );
+      }
+    });
+  });
+
+  return nodes;
+}
 
 export interface EventDateBadgeLabelProps {
   eventDate: string;
   eventTime: string;
+  fontSize?: number;
+  dotFontSize?: number;
+  /** Single line; scales text down to fit the parent width (use on narrow card badges). */
+  shrinkToFit?: boolean;
+  minimumFontScale?: number;
+  /** Tighter line height (e.g. compact mini badge). */
+  lineHeightMultiplier?: number;
 }
 
-export function EventDateBadgeLabel({ eventDate, eventTime }: EventDateBadgeLabelProps) {
+export function EventDateBadgeLabel({
+  eventDate,
+  eventTime,
+  fontSize = DATE_FONT_SIZE,
+  dotFontSize = fontSize * 2,
+  shrinkToFit = false,
+  minimumFontScale = SHRINK_TO_FIT_MIN_SCALE,
+  lineHeightMultiplier = 1.22,
+}: EventDateBadgeLabelProps) {
   const parts = getEventBadgeDateParts(eventDate, eventTime);
   const fullLabel = parts.join(' · ');
+  const segmentStyle = getSegmentTextStyle(fontSize, lineHeightMultiplier);
 
   return (
-    <View
+    <Text
       accessible
       accessibilityRole="text"
       accessibilityLabel={fullLabel}
-      style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}
+      style={[segmentStyle, shrinkToFit ? { width: '100%' } : null]}
+      numberOfLines={shrinkToFit ? 1 : undefined}
+      adjustsFontSizeToFit={shrinkToFit}
+      minimumFontScale={shrinkToFit ? minimumFontScale : undefined}
     >
-      {parts.map((part, index) => (
-        <View key={`${part}-${index}`} style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {index > 0 ? (
-            <Text
-              accessible={false}
-              style={{
-                color: colors.white,
-                fontSize: DOT_FONT_SIZE,
-                lineHeight: DOT_FONT_SIZE,
-                fontWeight: '700',
-                // Extra space before the time (after year).
-                marginHorizontal: index === 1 || index === parts.length - 1 ? 3 : 1,
-                includeFontPadding: false,
-                textAlignVertical: 'center',
-              }}
-            >
-              ·
-            </Text>
-          ) : null}
-          <TicketmasterText
-            fontSize={DATE_FONT_SIZE}
-            color={colors.white}
-            commaOffsetY={1}
-            style={dateTextStyle}
-          >
-            {part}
-          </TicketmasterText>
-        </View>
-      ))}
-    </View>
+      {buildInlineLabel(parts, fontSize, dotFontSize, shrinkToFit)}
+    </Text>
   );
 }

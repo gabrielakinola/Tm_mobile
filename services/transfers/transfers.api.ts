@@ -1,7 +1,7 @@
 import { apiClient } from '../api/client';
 import type { EventTicket } from '../events/types';
 
-export type TransferStatus = 'email_received' | 'tickets_accepted';
+export type TransferStatus = 'email_received' | 'tickets_accepted' | 'transfer_completed';
 
 export interface CreateTransferInput {
   eventId: string;
@@ -28,6 +28,9 @@ export interface TransferHistoryItem {
   status: TransferStatus;
   ticketCount: number;
   transferredAt: string;
+  requiresSenderAuthorization: boolean;
+  senderAuthorizationGranted: boolean;
+  pendingSenderAuthorization: boolean;
   recipient: {
     firstName: string;
     lastName: string;
@@ -63,7 +66,27 @@ export interface TransferHistoryListResponse {
 export const TRANSFER_STATUS_LABELS: Record<TransferStatus, string> = {
   email_received: 'Email received',
   tickets_accepted: 'Tickets Accepted',
+  transfer_completed: 'Transfer Completed',
 };
+
+export const TRANSFER_PENDING_AUTHORIZATION_LABEL = 'Pending authorization';
+
+export function getTransferHistoryStatusLabel(
+  transfer: Pick<TransferHistoryItem, 'status' | 'pendingSenderAuthorization'>,
+): string {
+  if (transfer.pendingSenderAuthorization) {
+    return TRANSFER_PENDING_AUTHORIZATION_LABEL;
+  }
+
+  return TRANSFER_STATUS_LABELS[transfer.status] ?? transfer.status;
+}
+
+export async function authorizeTransferAcceptanceRequest(id: string): Promise<TransferHistoryItem> {
+  const response = await apiClient.post<TransferHistoryItem>(
+    `/transfers/${id}/authorize-acceptance`,
+  );
+  return response.data;
+}
 
 export const TRANSFER_HISTORY_PAGE_SIZE = 20;
 

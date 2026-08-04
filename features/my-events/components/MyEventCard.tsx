@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import ticketIcon from '@/assets/icons/ticket.png';
 import { TicketmasterText } from '@/components/ui/TicketmasterText';
 import { Typography } from '@/components/ui/Typography';
-import { EventDateBadgeLabel } from '@/features/my-events/components/EventDateBadgeLabel';
+import { EventDateBadgeOverlay } from '@/features/my-events/components/EventDateBadgeOverlay';
 import type { MyEventSummary } from '@/services/events/types';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -56,18 +56,13 @@ export function MyEventCard({ event, onPress }: MyEventCardProps) {
               transition={200}
             />
 
-            <View
-              style={{
-                position: 'absolute',
-                left: 0,
-                bottom: 0,
-                backgroundColor: MY_EVENT_CARD_DARK_BG,
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
-              }}
-            >
-              <EventDateBadgeLabel eventDate={event.eventDate} eventTime={event.eventTime} />
-            </View>
+            <EventDateBadgeOverlay
+              eventDate={event.eventDate}
+              eventTime={event.eventTime}
+              containerWidth={cardWidth}
+              layout="card"
+              shrinkToFit
+            />
           </View>
 
           <View

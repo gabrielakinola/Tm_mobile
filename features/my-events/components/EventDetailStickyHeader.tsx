@@ -1,13 +1,9 @@
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TicketmasterText } from '@/components/ui/TicketmasterText';
 import { Typography } from '@/components/ui/Typography';
-import { EventDateBadgeLabel } from '@/features/my-events/components/EventDateBadgeLabel';
-import {
-  MY_EVENT_CARD_DARK_BG,
-  MY_EVENT_CARD_SIDE_MARGIN,
-} from '@/features/my-events/components/MyEventCard';
+import { EventDateBadgeOverlay } from '@/features/my-events/components/EventDateBadgeOverlay';
 import type { MyEventDetail } from '@/services/events/types';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -29,6 +25,8 @@ export interface EventDetailStickyHeaderProps {
   scrollY: Animated.Value;
   topInset: number;
   infoScrollRange?: number;
+  fixed?: boolean;
+  imageTransition?: number;
 }
 
 export function EventDetailStickyHeader({
@@ -36,6 +34,8 @@ export function EventDetailStickyHeader({
   scrollY,
   topInset,
   infoScrollRange = EVENT_DETAIL_INFO_SCROLL_RANGE,
+  fixed = false,
+  imageTransition = 200,
 }: EventDetailStickyHeaderProps) {
   const heroExpanded = getEventDetailHeroExpandedHeight(topInset);
   const heroCollapsed = getEventDetailHeroCollapsedHeight(topInset);
@@ -68,7 +68,7 @@ export function EventDetailStickyHeader({
         top: 0,
         left: 0,
         right: 0,
-        height: imageHeight,
+        height: fixed ? heroExpanded : imageHeight,
         overflow: 'hidden',
         zIndex: 1,
       }}
@@ -80,7 +80,7 @@ export function EventDetailStickyHeader({
           height: heroExpanded,
         }}
         contentFit="cover"
-        transition={200}
+        transition={imageTransition}
       />
 
       <LinearGradient
@@ -90,17 +90,14 @@ export function EventDetailStickyHeader({
       />
 
       <Animated.View
-        style={{
-          position: 'absolute',
-          left: MY_EVENT_CARD_SIDE_MARGIN,
-          bottom: 0,
-          backgroundColor: MY_EVENT_CARD_DARK_BG,
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
-          opacity: expandedOverlayOpacity,
-        }}
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFillObject, { opacity: fixed ? 1 : expandedOverlayOpacity }]}
       >
-        <EventDateBadgeLabel eventDate={event.eventDate} eventTime={event.eventTime} />
+        <EventDateBadgeOverlay
+          eventDate={event.eventDate}
+          eventTime={event.eventTime}
+          containerWidth={SCREEN_WIDTH}
+        />
       </Animated.View>
 
       <Animated.View
@@ -111,7 +108,7 @@ export function EventDetailStickyHeader({
           right: 72,
           bottom: spacing.sm,
           alignItems: 'center',
-          opacity: collapsedOverlayOpacity,
+          opacity: fixed ? 0 : collapsedOverlayOpacity,
         }}
       >
         <Typography

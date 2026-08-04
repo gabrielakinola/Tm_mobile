@@ -13,7 +13,7 @@ export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from '.
 export { Card, type CardProps } from './Card';
 export { Carousel, type CarouselProps } from './Carousel';
 export { Chip, type ChipProps } from './Chip';
-export { ConfirmModal, type ConfirmModalProps } from './ConfirmModal';
+export { ConfirmModal, type ConfirmModalProps, type ConfirmModalVariant } from './ConfirmModal';
 export { Divider, type DividerProps } from './Divider';
 export { DropdownMenu, type DropdownMenuProps, type DropdownOption } from './DropdownMenu';
 export { EmptyState, type EmptyStateProps } from './EmptyState';

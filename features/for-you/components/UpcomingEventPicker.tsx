@@ -23,7 +23,7 @@ function formatEventDate(value: string): string {
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
   }).format(parsed);
 }

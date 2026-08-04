@@ -209,7 +209,7 @@ export function getEventBadgeDateParts(
   }
 
   const weekday = WEEKDAYS[parsed.getDay()];
-  const day = String(parsed.getDate());
+  const day = String(parsed.getDate()).padStart(2, '0');
   const month = MONTH_LABELS[parsed.getMonth()];
   const year = String(parsed.getFullYear());
   const time = formatTimeLabel(parsed.getHours(), parsed.getMinutes());

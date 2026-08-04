@@ -268,7 +268,7 @@ export function DatePickerField({
                           fontWeight: selected || isToday ? '700' : '500',
                         }}
                       >
-                        {cell.getDate()}
+                        {String(cell.getDate()).padStart(2, '0')}
                       </Typography>
                     </View>
                   </Pressable>

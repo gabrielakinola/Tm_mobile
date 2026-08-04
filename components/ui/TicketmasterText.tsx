@@ -1,5 +1,6 @@
-import { Fragment } from 'react';
+import { type ReactNode } from 'react';
 import {
+  StyleSheet,
   Text,
   View,
   type StyleProp,
@@ -7,13 +8,12 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { TicketmasterComma } from '@/components/ui/TicketmasterComma';
 
 export interface TicketmasterTextProps extends Omit<TextProps, 'children' | 'style'> {
   children: string;
   fontSize?: number;
   color?: string;
-  /** Extra downward shift for the SVG comma only. */
+  /** Extra downward shift for the Noto Serif comma only. */
   commaOffsetY?: number;
   style?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
@@ -29,14 +29,7 @@ function resolveNumber(
     return explicit;
   }
 
-  const flat = (Array.isArray(style) ? style : [style]).reduce<TextStyle>((acc, item) => {
-    if (item && typeof item === 'object' && !Array.isArray(item)) {
-      return { ...acc, ...item };
-    }
-    return acc;
-  }, {});
-
-  const value = flat[key];
+  const value = StyleSheet.flatten(style)?.[key];
   return typeof value === 'number' ? value : fallback;
 }
 
@@ -45,19 +38,49 @@ function resolveColor(explicit: string | undefined, style: StyleProp<TextStyle>)
     return explicit;
   }
 
-  const flat = (Array.isArray(style) ? style : [style]).reduce<TextStyle>((acc, item) => {
-    if (item && typeof item === 'object' && !Array.isArray(item)) {
-      return { ...acc, ...item };
-    }
-    return acc;
-  }, {});
+  const color = StyleSheet.flatten(style)?.color;
+  return typeof color === 'string' ? color : '#FFFFFF';
+}
 
-  return typeof flat.color === 'string' ? flat.color : '#FFFFFF';
+function buildCommaInlineChildren(
+  children: string,
+  resolvedSize: number,
+  resolvedColor: string,
+  lineHeight: number | undefined,
+  commaOffsetY: number | undefined,
+): ReactNode[] {
+  const segments = children.split(',');
+  const commaFontSize = resolvedSize * 1.35;
+  const commaTranslateY = (commaOffsetY ?? 0) + 1.5;
+  const nodes: ReactNode[] = [];
+
+  segments.forEach((segment, index) => {
+    nodes.push(segment);
+    if (index < segments.length - 1) {
+      nodes.push(
+        <Text
+          key={`tm-comma-${index}`}
+          style={{
+            color: resolvedColor,
+            fontFamily: 'NotoSerif_400Regular',
+            fontSize: commaFontSize,
+            ...(typeof lineHeight === 'number' ? { lineHeight } : null),
+            includeFontPadding: false,
+            transform: [{ translateY: commaTranslateY }],
+          }}
+        >
+          ,
+        </Text>,
+      );
+    }
+  });
+
+  return nodes;
 }
 
 /**
- * Renders a string, replacing each "," with the Ticketmaster SVG comma
- * sized/colored to match the surrounding text.
+ * Renders a string with Noto Serif used only for commas; surrounding text
+ * keeps its caller-provided font.
  */
 export function TicketmasterText({
   children,
@@ -70,50 +93,29 @@ export function TicketmasterText({
   numberOfLines,
   ...props
 }: TicketmasterTextProps) {
+  const flattenedStyle = StyleSheet.flatten(style);
   const resolvedSize = resolveNumber(fontSize, style, 'fontSize', 16);
   const resolvedColor = resolveColor(color, style);
+  const lineHeight =
+    typeof flattenedStyle?.lineHeight === 'number' ? flattenedStyle.lineHeight : undefined;
   const segments = children.split(',');
 
-  if (segments.length === 1) {
-    return (
-      <Text
-        {...props}
-        style={style}
-        numberOfLines={numberOfLines}
-        accessibilityLabel={accessibilityLabel ?? children}
-      >
-        {children}
-      </Text>
-    );
+  const textNode = (
+    <Text
+      {...props}
+      style={style}
+      numberOfLines={numberOfLines}
+      accessibilityLabel={accessibilityLabel ?? children}
+    >
+      {segments.length === 1
+        ? children
+        : buildCommaInlineChildren(children, resolvedSize, resolvedColor, lineHeight, commaOffsetY)}
+    </Text>
+  );
+
+  if (containerStyle) {
+    return <View style={containerStyle}>{textNode}</View>;
   }
 
-  return (
-    <View
-      accessible
-      accessibilityLabel={accessibilityLabel ?? children}
-      style={[
-        {
-          flexDirection: 'row',
-          flexWrap: numberOfLines === 1 ? 'nowrap' : 'wrap',
-          alignItems: 'flex-end',
-        },
-        containerStyle,
-      ]}
-    >
-      {segments.map((segment, index) => (
-        <Fragment key={`tm-text-${index}`}>
-          <Text {...props} style={style} numberOfLines={numberOfLines}>
-            {segment}
-          </Text>
-          {index < segments.length - 1 ? (
-            <TicketmasterComma
-              fontSize={resolvedSize}
-              color={resolvedColor}
-              offsetY={commaOffsetY}
-            />
-          ) : null}
-        </Fragment>
-      ))}
-    </View>
-  );
+  return textNode;
 }

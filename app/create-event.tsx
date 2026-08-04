@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Clock } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { DropdownMenu, Header, Typography, useToast } from '@/components/ui';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 import { DatePickerField } from '@/features/create-event/components/DatePickerField';
@@ -15,7 +15,9 @@ import {
   SectionLabel,
 } from '@/features/create-event/components/FormFields';
 import { TicketmasterSearch } from '@/features/create-event/components/ticketmaster-search';
+import { TimePickerField } from '@/features/create-event/components/TimePickerField';
 import { formatEventDateFromIso } from '@/features/create-event/date-utils';
+import { formatEventTimeFrom24h } from '@/features/create-event/time-utils';
 import {
   hasFormErrors,
   isTicketComplete,
@@ -40,11 +42,13 @@ const CURRENCY_OPTIONS = [
   { label: 'CAD', value: 'CAD' },
 ];
 
-const PRESALE_OPTIONS = [
-  { label: 'General Sale', value: 'general' },
-  { label: 'Presale', value: 'presale' },
-  { label: 'VIP Sale', value: 'vip' },
-  { label: 'Member Sale', value: 'member' },
+const SALE_LABEL_OPTIONS = [
+  { label: 'General Sale', value: 'General Sale' },
+  { label: 'Standard Ticket', value: 'Standard Ticket' },
+  { label: 'Verified Fan Presale', value: 'Verified Fan Presale' },
+  { label: 'American Express Presale', value: 'American Express Presale' },
+  { label: 'VIP Package', value: 'VIP Package' },
+  { label: 'Custom', value: 'Custom' },
 ];
 
 const INITIAL_TICKETS: TicketRow[] = [{ id: '1', section: '', row: '', seat: '' }];
@@ -52,6 +56,7 @@ const INITIAL_TICKETS: TicketRow[] = [{ id: '1', section: '', row: '', seat: '' 
 function createInitialFormState() {
   return {
     name: '',
+    ticketmasterUrl: '',
     eventDate: '',
     eventTime: '',
     purchaseDate: '',
@@ -60,12 +65,14 @@ function createInitialFormState() {
     entrance: '',
     lat: '',
     lng: '',
+    timezone: '',
     seatMapUrl: '',
     currency: 'USD',
     price: '',
     fee: '',
     orderNumber: '',
-    presale: 'general',
+    saleLabelOption: 'General Sale',
+    customSaleLabel: '',
     ticketMode: 'seated' as TicketMode,
     tickets: INITIAL_TICKETS.map((ticket) => ({ ...ticket })),
     nextTicketId: 2,
@@ -105,25 +112,6 @@ function toEventImageInput(image: EventImage): EventImageInput {
   };
 }
 
-function formatEventTimeForDisplay(value: string): string {
-  if (!value) {
-    return '';
-  }
-
-  const [hoursText, minutesText] = value.split(':');
-  const hours = Number(hoursText);
-  const minutes = Number(minutesText);
-
-  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-    return value;
-  }
-
-  const meridiem = hours >= 12 ? 'PM' : 'AM';
-  const normalizedHours = hours % 12 || 12;
-
-  return `${normalizedHours}:${String(minutes).padStart(2, '0')} ${meridiem}`;
-}
-
 export default function CreateEventScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -137,6 +125,7 @@ export default function CreateEventScreen() {
   const [hydrated, setHydrated] = useState(!isEditing);
 
   const [name, setName] = useState('');
+  const [ticketmasterUrl, setTicketmasterUrl] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
@@ -145,12 +134,14 @@ export default function CreateEventScreen() {
   const [entrance, setEntrance] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+  const [timezone, setTimezone] = useState('');
   const [seatMapUrl, setSeatMapUrl] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [price, setPrice] = useState('');
   const [fee, setFee] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
-  const [presale, setPresale] = useState('general');
+  const [saleLabelOption, setSaleLabelOption] = useState('General Sale');
+  const [customSaleLabel, setCustomSaleLabel] = useState('');
   const [ticketMode, setTicketMode] = useState<TicketMode>('seated');
   const [tickets, setTickets] = useState<TicketRow[]>([
     { id: '1', section: '', row: '', seat: '' },
@@ -168,20 +159,29 @@ export default function CreateEventScreen() {
 
     const event = existingEventQuery.data;
     setName(event.name);
+    setTicketmasterUrl(event.ticketmasterUrl ?? '');
     setEventDate(formatEventDateFromIso(event.eventDate));
     setEventTime(event.eventTime);
-    setPurchaseDate(formatEventDateFromIso(event.purchaseDate));
-    setPurchaseTime(event.purchaseTime);
+    setPurchaseDate(formatEventDateFromIso(event.purchaseDate ?? ''));
+    setPurchaseTime(event.purchaseTime ?? '');
     setVenue(event.venue);
     setEntrance(event.entrance ?? '');
     setLat(event.latitude ?? '');
     setLng(event.longitude ?? '');
+    setTimezone(event.timezone ?? '');
     setSeatMapUrl(event.seatMapUrl ?? '');
     setCurrency(event.currency || 'USD');
     setPrice(event.price ?? '');
     setFee(event.fee ?? '');
     setOrderNumber(event.orderNumber);
-    setPresale(event.presale || 'general');
+    const savedSaleLabel = event.saleLabel?.trim() || 'Standard Ticket';
+    if (SALE_LABEL_OPTIONS.some((option) => option.value === savedSaleLabel)) {
+      setSaleLabelOption(savedSaleLabel);
+      setCustomSaleLabel('');
+    } else {
+      setSaleLabelOption('Custom');
+      setCustomSaleLabel(savedSaleLabel);
+    }
     setTicketMode((event.ticketMode as TicketMode) || 'seated');
     const mappedTickets =
       event.tickets.length > 0
@@ -207,6 +207,7 @@ export default function CreateEventScreen() {
   const resetForm = () => {
     const initial = createInitialFormState();
     setName(initial.name);
+    setTicketmasterUrl(initial.ticketmasterUrl);
     setEventDate(initial.eventDate);
     setEventTime(initial.eventTime);
     setPurchaseDate(initial.purchaseDate);
@@ -215,12 +216,14 @@ export default function CreateEventScreen() {
     setEntrance(initial.entrance);
     setLat(initial.lat);
     setLng(initial.lng);
+    setTimezone(initial.timezone);
     setSeatMapUrl(initial.seatMapUrl);
     setCurrency(initial.currency);
     setPrice(initial.price);
     setFee(initial.fee);
     setOrderNumber(initial.orderNumber);
-    setPresale(initial.presale);
+    setSaleLabelOption(initial.saleLabelOption);
+    setCustomSaleLabel(initial.customSaleLabel);
     setTicketMode(initial.ticketMode);
     setTickets(initial.tickets);
     setNextTicketId(initial.nextTicketId);
@@ -313,11 +316,14 @@ export default function CreateEventScreen() {
 
   const handleTicketmasterEventSelected = (event: TicketmasterEventDetails) => {
     setName(event.eventName);
+    setTicketmasterUrl(event.ticketmasterUrl);
     setEventDate(formatEventDateFromIso(event.date));
-    setEventTime(formatEventTimeForDisplay(event.startTime));
+    const [hoursText, minutesText] = event.startTime.split(':');
+    setEventTime(formatEventTimeFrom24h(Number(hoursText), Number(minutesText)));
     setVenue(event.location ? `${event.venue} - ${event.location}` : event.venue);
     setLat(event.latitude);
     setLng(event.longitude);
+    setTimezone(event.timezone ?? '');
     setSeatMapUrl(event.seatMapUrl);
     setOrderNumber(event.orderNumber);
 
@@ -376,6 +382,7 @@ export default function CreateEventScreen() {
 
     const payload = {
       name,
+      ticketmasterUrl,
       eventDate,
       eventTime,
       purchaseDate,
@@ -384,12 +391,13 @@ export default function CreateEventScreen() {
       entrance,
       latitude: lat,
       longitude: lng,
+      timezone,
       seatMapUrl,
       currency,
       price,
       fee,
       orderNumber,
-      presale,
+      saleLabel: saleLabelOption === 'Custom' ? customSaleLabel : saleLabelOption,
       ticketMode,
       tickets: tickets.map(({ section, row, seat }) => ({
         section,
@@ -693,14 +701,13 @@ export default function CreateEventScreen() {
                   />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <FormField
+                  <TimePickerField
                     value={eventTime}
-                    onChangeText={(value) => {
+                    onChange={(value) => {
                       clearFieldError('eventTime');
                       setEventTime(value);
                     }}
-                    placeholder="Time"
-                    leftAddon={<Clock size={16} color={colors.neutral[500]} />}
+                    placeholder="Select time"
                     error={formErrors.eventTime}
                   />
                 </View>
@@ -709,11 +716,7 @@ export default function CreateEventScreen() {
 
             <View style={{ gap: spacing.xs }}>
               <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
-                Purchase date & time
-                <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
-                  {' '}
-                  *
-                </Typography>
+                Purchase date & time (optional)
               </Typography>
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 <View style={{ flex: 1 }}>
@@ -728,14 +731,13 @@ export default function CreateEventScreen() {
                   />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <FormField
+                  <TimePickerField
                     value={purchaseTime}
-                    onChangeText={(value) => {
+                    onChange={(value) => {
                       clearFieldError('purchaseTime');
                       setPurchaseTime(value);
                     }}
-                    placeholder="Time"
-                    leftAddon={<Clock size={16} color={colors.neutral[500]} />}
+                    placeholder="Select time"
                     error={formErrors.purchaseTime}
                   />
                 </View>
@@ -844,11 +846,20 @@ export default function CreateEventScreen() {
             />
 
             <DropdownMenu
-              label="Presale / sale label"
-              value={presale}
-              options={PRESALE_OPTIONS}
-              onChange={setPresale}
+              label="Sale label"
+              value={saleLabelOption}
+              options={SALE_LABEL_OPTIONS}
+              onChange={setSaleLabelOption}
             />
+
+            {saleLabelOption === 'Custom' ? (
+              <FormField
+                label="Custom sale label"
+                value={customSaleLabel}
+                onChangeText={setCustomSaleLabel}
+                placeholder="Enter sale label"
+              />
+            ) : null}
           </FormCard>
 
           {/* TICKETS */}

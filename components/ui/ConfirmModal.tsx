@@ -1,14 +1,17 @@
 import { ActivityIndicator, Pressable, Modal as RNModal, View } from 'react-native';
-import { Trash2, X } from 'lucide-react-native';
+import { CircleCheck, Trash2, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui/Typography';
 import { hapticLight } from '@/lib/haptics';
 import { colors, radius, spacing } from '@/theme/tokens';
+
+export type ConfirmModalVariant = 'destructive' | 'default';
 
 export interface ConfirmModalProps {
   visible: boolean;
   title: string;
   message: string;
   confirmLabel?: string;
+  variant?: ConfirmModalVariant;
   loading?: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -18,11 +21,14 @@ export function ConfirmModal({
   visible,
   title,
   message,
-  confirmLabel = 'Delete',
+  confirmLabel,
+  variant = 'destructive',
   loading = false,
   onClose,
   onConfirm,
 }: ConfirmModalProps) {
+  const isDestructive = variant === 'destructive';
+  const resolvedConfirmLabel = confirmLabel ?? (isDestructive ? 'Delete' : 'Confirm');
   const handleClose = () => {
     if (loading) return;
     void hapticLight();
@@ -66,18 +72,33 @@ export function ConfirmModal({
             }}
           >
             <View style={{ flex: 1, gap: spacing.sm }}>
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: radius.md,
-                  backgroundColor: colors.error[50],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Trash2 size={22} color={colors.error[500]} strokeWidth={2} />
-              </View>
+              {isDestructive ? (
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: radius.md,
+                    backgroundColor: colors.error[50],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Trash2 size={22} color={colors.error[500]} strokeWidth={2} />
+                </View>
+              ) : (
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: radius.md,
+                    backgroundColor: colors.pulse[50],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <CircleCheck size={22} color={colors.pulse[600]} strokeWidth={2} />
+                </View>
+              )}
               <Typography
                 style={{
                   color: colors.neutral[950],
@@ -141,7 +162,7 @@ export function ConfirmModal({
                 flex: 1,
                 minHeight: 48,
                 borderRadius: radius.lg,
-                backgroundColor: colors.error[500],
+                backgroundColor: isDestructive ? colors.error[500] : colors.pulse[600],
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.75 : 1,
@@ -151,7 +172,7 @@ export function ConfirmModal({
                 <ActivityIndicator color={colors.white} />
               ) : (
                 <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>
-                  {confirmLabel}
+                  {resolvedConfirmLabel}
                 </Typography>
               )}
             </Pressable>

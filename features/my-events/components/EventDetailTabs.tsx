@@ -3,6 +3,7 @@ import { Typography } from '@/components/ui/Typography';
 import { colors, spacing } from '@/theme/tokens';
 
 export type EventDetailTab = 'tickets' | 'extras';
+const EVENT_DETAIL_TAB_SIDE_MARGIN = 10;
 
 export interface EventDetailTabsProps {
   activeTab: EventDetailTab;
@@ -19,6 +20,7 @@ export function EventDetailTabs({ activeTab, onChange }: EventDetailTabsProps) {
     <View
       style={{
         flexDirection: 'row',
+        marginHorizontal: EVENT_DETAIL_TAB_SIDE_MARGIN,
         backgroundColor: colors.neutral[0],
         borderBottomWidth: 1,
         borderBottomColor: colors.neutral[200],

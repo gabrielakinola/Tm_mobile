@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  authorizeTransferAcceptanceRequest,
   clearTransferHistoryRequest,
   deleteTransferRequest,
   getTransferByIdRequest,
@@ -74,6 +75,18 @@ export function useClearTransferHistory() {
     mutationFn: () => clearTransferHistoryRequest(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: transferHistoryQueryKey });
+    },
+  });
+}
+
+export function useAuthorizeTransferAcceptance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => authorizeTransferAcceptanceRequest(id),
+    onSuccess: async (_data, id) => {
+      await queryClient.invalidateQueries({ queryKey: transferHistoryQueryKey });
+      await queryClient.invalidateQueries({ queryKey: transferDetailQueryKey(id) });
     },
   });
 }

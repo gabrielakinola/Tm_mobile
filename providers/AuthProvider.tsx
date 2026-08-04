@@ -13,11 +13,16 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+function isSuperAdmin(role: string | undefined | null): boolean {
+  return role === 'SUPERADMIN';
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const { theme } = useTheme();
   const router = useRouter();
   const segments = useSegments();
   const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
   const { bootstrap } = useAuthBootstrap();
 
   useSessionRealtime();
@@ -41,15 +46,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const inAuthGroup = segments[0] === 'login';
+    const inAdminGroup = segments[0] === 'admin';
+    const adminUser = isSuperAdmin(user?.role);
 
     if (status === 'unauthenticated' && !inAuthGroup) {
       router.replace('/login');
+      return;
     }
 
-    if (status === 'authenticated' && inAuthGroup) {
+    if (status !== 'authenticated') {
+      return;
+    }
+
+    if (adminUser) {
+      if (inAuthGroup || !inAdminGroup) {
+        router.replace('/admin/users');
+      }
+      return;
+    }
+
+    if (inAdminGroup) {
+      router.replace('/(tabs)/discover');
+      return;
+    }
+
+    if (inAuthGroup) {
       router.replace('/(tabs)/discover');
     }
-  }, [router, segments, status]);
+  }, [router, segments, status, user?.role]);
 
   if (status === 'idle' || status === 'loading') {
     return (

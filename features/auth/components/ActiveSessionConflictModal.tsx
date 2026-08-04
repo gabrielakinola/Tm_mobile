@@ -19,7 +19,7 @@ function formatLastActive(value?: string): string | null {
   if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleString(undefined, {
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     hour: 'numeric',
     minute: '2-digit',
   });

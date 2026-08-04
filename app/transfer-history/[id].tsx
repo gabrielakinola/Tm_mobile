@@ -8,7 +8,7 @@ import { ErrorState, Header, LoadingState, Typography } from '@/components/ui';
 import { TransferConfirmModal } from '@/features/transfer-history/components/TransferConfirmModal';
 import { useDeleteTransfer, useTransferDetail } from '@/hooks/transfers/useTransferHistory';
 import {
-  TRANSFER_STATUS_LABELS,
+  getTransferHistoryStatusLabel,
   type TransferHistoryTicket,
 } from '@/services/transfers/transfers.api';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -22,7 +22,7 @@ function formatEventDate(value: string): string {
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
   }).format(parsed);
 }
@@ -35,7 +35,7 @@ function formatTransferredAt(value: string): string {
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
@@ -160,7 +160,7 @@ export default function TransferHistoryDetailScreen() {
                 }}
               >
                 <Typography style={{ color: colors.pulse[700], fontSize: 12, fontWeight: '700' }}>
-                  {TRANSFER_STATUS_LABELS[transfer.status] ?? transfer.status}
+                  {getTransferHistoryStatusLabel(transfer)}
                 </Typography>
               </View>
 
@@ -247,6 +247,25 @@ export default function TransferHistoryDetailScreen() {
               </View>
             ))}
           </View>
+
+          {transfer.pendingSenderAuthorization ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push(`/transfer-history/authorize/${transfer.id}`)}
+              style={{
+                minHeight: 48,
+                borderRadius: radius.md,
+                backgroundColor: colors.pulse[600],
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: spacing.lg,
+              }}
+            >
+              <Typography style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
+                Authorize transfer
+              </Typography>
+            </Pressable>
+          ) : null}
         </ScrollView>
       )}
 

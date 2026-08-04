@@ -13,23 +13,26 @@ export interface CreatedEvent {
   userId: string;
   imageUrl: string;
   name: string;
+  ticketmasterUrl?: string;
   eventDate: string;
   eventTime: string;
-  purchaseDate: string;
-  purchaseTime: string;
+  purchaseDate?: string;
+  purchaseTime?: string;
   venue: string;
   location?: string;
   entrance: string;
   latitude: string;
   longitude: string;
+  timezone?: string;
   seatMapUrl: string;
   currency: string;
   price: string | null;
   fee: string | null;
   orderNumber: string;
-  presale: string;
+  saleLabel: string;
   ticketMode: TicketMode;
   tickets: EventTicket[];
+  hidden?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,20 +51,22 @@ export type EventImageInput =
 
 export interface CreateEventInput {
   name: string;
+  ticketmasterUrl?: string;
   eventDate: string;
   eventTime: string;
-  purchaseDate: string;
-  purchaseTime: string;
+  purchaseDate?: string;
+  purchaseTime?: string;
   venue: string;
   entrance?: string;
   latitude?: string;
   longitude?: string;
+  timezone?: string;
   seatMapUrl?: string;
   currency: string;
   price?: string;
   fee?: string;
   orderNumber: string;
-  presale: string;
+  saleLabel: string;
   ticketMode: TicketMode;
   tickets: EventTicket[];
   image: EventImageInput;
@@ -77,6 +82,7 @@ export interface MyEventSummary {
   eventTime: string;
   venue: string;
   ticketCount: number;
+  hidden: boolean;
 }
 
 export interface MyEventsListParams {
@@ -84,6 +90,8 @@ export interface MyEventsListParams {
   search?: string;
   page?: number;
   limit?: number;
+  /** When true, include hidden events (Manage Events). My Tickets omits this. */
+  includeHidden?: boolean;
 }
 
 export interface MyEventsResponse {

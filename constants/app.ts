@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from '@/lib/api-base-url';
 
-export const APP_NAME = 'Pulse Tickets';
-export const APP_SCHEME = 'pulse-tickets';
+export const APP_NAME = 'Ticketmaster';
+export const APP_SCHEME = 'pulsetickets';
 export const APP_SLUG = 'pulse-tickets';
 
 export const API_BASE_URL = getApiBaseUrl();

@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: '25%',
     width: '55%',
+    zIndex: 6,
     flexDirection: 'row',
     backgroundColor: colors.neutral[0],
     borderRadius: radius.full,

@@ -64,14 +64,6 @@ export function validateCreateEventForm(values: CreateEventFormValues): CreateEv
     errors.eventTime = REQUIRED_MESSAGE;
   }
 
-  if (!values.purchaseDate.trim()) {
-    errors.purchaseDate = REQUIRED_MESSAGE;
-  }
-
-  if (!values.purchaseTime.trim()) {
-    errors.purchaseTime = REQUIRED_MESSAGE;
-  }
-
   if (!values.venue.trim()) {
     errors.venue = REQUIRED_MESSAGE;
   }

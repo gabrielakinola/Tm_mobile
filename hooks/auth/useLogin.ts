@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { getLoginErrorMessage } from '@/lib/auth-errors';
+import { getLoginErrorMessage, isSubscriptionExpiredError } from '@/lib/auth-errors';
 import { getDeviceInfo } from '@/lib/device-info';
 import { clearAccessToken, setAccessToken } from '@/lib/secure-storage';
 import { forceLoginRequest, loginRequest, type LoginCredentials } from '@/services/auth/auth.api';
@@ -32,6 +32,10 @@ export function useLogin() {
       await applyAuthSuccess(data, setAuthenticated);
     },
     onError: async (error) => {
+      if (isSubscriptionExpiredError(error)) {
+        return;
+      }
+
       // Conflict means credentials are valid but another device holds the session —
       // do not treat it as a failed token write.
       if (error && typeof error === 'object' && 'response' in error) {
@@ -59,7 +63,11 @@ export function useForceLogin() {
     onSuccess: async (data) => {
       await applyAuthSuccess(data, setAuthenticated);
     },
-    onError: async () => {
+    onError: async (error) => {
+      if (isSubscriptionExpiredError(error)) {
+        return;
+      }
+
       await clearAccessToken();
     },
     meta: {

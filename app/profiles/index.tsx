@@ -7,6 +7,7 @@ import { CountryFlagBadge } from '@/components/navigation/CountryFlagBadge';
 import { Header, Typography } from '@/components/ui';
 import { COUNTRY_OPTIONS } from '@/features/profile-location/constants';
 import { useDeleteProfile, useProfiles, useSetDefaultProfile } from '@/hooks/profiles/useProfiles';
+import { formatProfileName } from '@/lib/profile-name';
 import type { DisplayProfile } from '@/services/profiles/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -38,7 +39,7 @@ export default function ProfilesScreen() {
         setSuccessDefaultId(profile.id);
         Alert.alert(
           'Default updated',
-          `“${profile.displayName || 'Untitled profile'}” is now your default profile.`,
+          `“${formatProfileName(profile) || 'Untitled profile'}” is now your default profile.`,
         );
       },
       onError: () => {
@@ -55,7 +56,7 @@ export default function ProfilesScreen() {
 
     Alert.alert(
       'Delete profile',
-      `Remove “${profile.displayName || 'Untitled profile'}”? This only affects in-app display.`,
+      `Remove “${formatProfileName(profile) || 'Untitled profile'}”? This only affects in-app display.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -171,7 +172,7 @@ export default function ProfilesScreen() {
                   <Typography
                     style={{ color: colors.neutral[950], fontSize: 16, fontWeight: '700' }}
                   >
-                    {profile.displayName || 'Untitled profile'}
+                    {formatProfileName(profile) || 'Untitled profile'}
                   </Typography>
                   <Typography style={{ color: colors.neutral[500], fontSize: 13 }}>
                     {profile.displayEmail || 'No display email'}

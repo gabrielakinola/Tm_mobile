@@ -28,7 +28,8 @@ export default function ProfileFormScreen() {
     [profileId, profiles],
   );
 
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [displayEmail, setDisplayEmail] = useState('');
   const [city, setCity] = useState('');
   const [mobileLast4, setMobileLast4] = useState('');
@@ -43,7 +44,8 @@ export default function ProfileFormScreen() {
     if (!existing) {
       return;
     }
-    setDisplayName(existing.displayName);
+    setFirstName(existing.firstName);
+    setLastName(existing.lastName);
     setDisplayEmail(existing.displayEmail);
     setCity(existing.city);
     setMobileLast4(existing.mobileLast4 ?? '');
@@ -54,12 +56,13 @@ export default function ProfileFormScreen() {
   const saving = createMutation.isPending || updateMutation.isPending;
 
   const handleSave = () => {
-    const trimmedName = displayName.trim();
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
     const trimmedEmail = displayEmail.trim();
     const trimmedMobileLast4 = mobileLast4.trim();
 
-    if (!trimmedName) {
-      Alert.alert('Missing name', 'Enter a display name for this profile.');
+    if (!trimmedFirstName) {
+      Alert.alert('Missing first name', 'Enter a first name for this profile.');
       return;
     }
 
@@ -77,7 +80,8 @@ export default function ProfileFormScreen() {
     }
 
     const payload = {
-      displayName: trimmedName,
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
       displayEmail: trimmedEmail,
       city: city.trim(),
       mobileLast4: trimmedMobileLast4,
@@ -89,7 +93,8 @@ export default function ProfileFormScreen() {
         { id: profileId, input: payload },
         {
           onSuccess: (updated) => {
-            setDisplayName(updated.displayName);
+            setFirstName(updated.firstName);
+            setLastName(updated.lastName);
             setDisplayEmail(updated.displayEmail);
             setCity(updated.city);
             setMobileLast4(updated.mobileLast4);
@@ -108,7 +113,8 @@ export default function ProfileFormScreen() {
 
     createMutation.mutate(payload, {
       onSuccess: (created) => {
-        setDisplayName(created.displayName);
+        setFirstName(created.firstName);
+        setLastName(created.lastName);
         setDisplayEmail(created.displayEmail);
         setCity(created.city);
         setMobileLast4(created.mobileLast4);
@@ -160,18 +166,26 @@ export default function ProfileFormScreen() {
           </Typography>
 
           <FormCard>
-            <SectionLabel>Profile display</SectionLabel>
+            <SectionLabel>Profile name</SectionLabel>
             <Typography
               style={{ color: colors.neutral[500], fontSize: 12, marginTop: -spacing.sm }}
             >
-              Shown on My Account when this profile is the default.
+              The default profile&apos;s first name is shown when you transfer tickets.
             </Typography>
 
             <FormField
-              label="Display name"
-              value={displayName}
-              onChangeText={setDisplayName}
-              placeholder="Your display name"
+              label="First name"
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="Your first name"
+              autoCapitalize="words"
+            />
+
+            <FormField
+              label="Last name"
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Your last name"
               autoCapitalize="words"
             />
 

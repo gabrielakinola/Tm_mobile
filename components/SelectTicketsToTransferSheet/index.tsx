@@ -16,11 +16,14 @@ import {
   useBottomSheetSpringConfigs,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
+import { MinimumTicketsTransferModal } from '@/components/SelectTicketsToTransferSheet/MinimumTicketsTransferModal';
 import { SelectTicketsFooter } from '@/components/SelectTicketsToTransferSheet/SelectTicketsFooter';
 import { SelectTicketsMetaRow } from '@/components/SelectTicketsToTransferSheet/SelectTicketsMetaRow';
 import { TransferSafetyNotice } from '@/components/SelectTicketsToTransferSheet/TransferSafetyNotice';
 import { TransferTicketSeatCard } from '@/components/SelectTicketsToTransferSheet/TransferTicketSeatCard';
 import { Typography } from '@/components/ui/Typography';
+import { parseMinTicketsPerTransfer } from '@/features/transfers/utils/min-tickets-transfer.util';
+import { useUserSettings } from '@/hooks/settings/useUserSettings';
 import type { EventTicket, TicketMode } from '@/services/events/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -56,6 +59,9 @@ export const SelectTicketsToTransferSheet = memo(
       const sheetRef = useRef<BottomSheetModal>(null);
       const preserveSelectionRef = useRef(false);
       const [selectedIndexes, setSelectedIndexes] = useState<Set<number>>(new Set());
+      const [minimumTicketsModalVisible, setMinimumTicketsModalVisible] = useState(false);
+      const [minimumTicketsRequired, setMinimumTicketsRequired] = useState(1);
+      const userSettingsQuery = useUserSettings();
 
       useImperativeHandle(
         ref,
@@ -99,11 +105,26 @@ export const SelectTicketsToTransferSheet = memo(
       }, []);
 
       const handleTransferTo = useCallback(() => {
+        const selectedCount = selectedIndexes.size;
+        if (selectedCount === 0) {
+          return;
+        }
+
+        const settings = userSettingsQuery.data;
+        if (settings?.enableMinTicketsInterruption) {
+          const minimum = parseMinTicketsPerTransfer(settings.minTicketsPerTransfer);
+          if (minimum !== null && selectedCount < minimum) {
+            setMinimumTicketsRequired(minimum);
+            setMinimumTicketsModalVisible(true);
+            return;
+          }
+        }
+
         preserveSelectionRef.current = true;
         const selectedTickets = tickets.filter((_, index) => selectedIndexes.has(index));
         sheetRef.current?.dismiss();
         onTransferTo?.(selectedTickets);
-      }, [onTransferTo, selectedIndexes, tickets]);
+      }, [onTransferTo, selectedIndexes, tickets, userSettingsQuery.data]);
 
       const handleDismiss = useCallback(() => {
         if (preserveSelectionRef.current) {
@@ -124,51 +145,59 @@ export const SelectTicketsToTransferSheet = memo(
       );
 
       return (
-        <BottomSheetModal
-          ref={sheetRef}
-          snapPoints={SNAP_POINTS}
-          enablePanDownToClose
-          enableDynamicSizing={false}
-          animationConfigs={animationConfigs}
-          backdropComponent={renderBackdrop}
-          backgroundStyle={styles.sheetBackground}
-          handleIndicatorStyle={styles.handle}
-          onDismiss={handleDismiss}
-        >
-          <View style={styles.content}>
-            <Typography style={styles.title}>SELECT TICKETS TO TRANSFER</Typography>
-            <View style={styles.headerDivider} />
+        <>
+          <BottomSheetModal
+            ref={sheetRef}
+            snapPoints={SNAP_POINTS}
+            enablePanDownToClose
+            enableDynamicSizing={false}
+            animationConfigs={animationConfigs}
+            backdropComponent={renderBackdrop}
+            backgroundStyle={styles.sheetBackground}
+            handleIndicatorStyle={styles.handle}
+            onDismiss={handleDismiss}
+          >
+            <View style={styles.content}>
+              <Typography style={styles.title}>SELECT TICKETS TO TRANSFER</Typography>
+              <View style={styles.headerDivider} />
 
-            <TransferSafetyNotice />
-            <View style={styles.headerDivider} />
+              <TransferSafetyNotice />
+              <View style={styles.headerDivider} />
 
-            <SelectTicketsMetaRow tickets={tickets} ticketMode={ticketMode} />
+              <SelectTicketsMetaRow tickets={tickets} ticketMode={ticketMode} />
 
-            <BottomSheetScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.seatsRow}
-              bounces={false}
-            >
-              {seatCards.map((seat) => (
-                <TransferTicketSeatCard
-                  key={seat.key}
-                  seatLabel={seat.label}
-                  selected={selectedIndexes.has(seat.index)}
-                  onPress={() => toggleSeat(seat.index)}
-                />
-              ))}
-            </BottomSheetScrollView>
+              <BottomSheetScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.seatsRow}
+                bounces={false}
+              >
+                {seatCards.map((seat) => (
+                  <TransferTicketSeatCard
+                    key={seat.key}
+                    seatLabel={seat.label}
+                    selected={selectedIndexes.has(seat.index)}
+                    onPress={() => toggleSeat(seat.index)}
+                  />
+                ))}
+              </BottomSheetScrollView>
 
-            <View style={styles.flexSpacer} />
+              <View style={styles.flexSpacer} />
 
-            <SelectTicketsFooter
-              selectedCount={selectedIndexes.size}
-              bottomInset={insets.bottom}
-              onTransferTo={handleTransferTo}
-            />
-          </View>
-        </BottomSheetModal>
+              <SelectTicketsFooter
+                selectedCount={selectedIndexes.size}
+                bottomInset={insets.bottom}
+                onTransferTo={handleTransferTo}
+              />
+            </View>
+          </BottomSheetModal>
+
+          <MinimumTicketsTransferModal
+            visible={minimumTicketsModalVisible}
+            minimumTickets={minimumTicketsRequired}
+            onClose={() => setMinimumTicketsModalVisible(false)}
+          />
+        </>
       );
     },
   ),

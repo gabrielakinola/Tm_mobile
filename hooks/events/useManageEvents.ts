@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import {
   deleteEventRequest,
   getMyEventsRequest,
+  setEventHiddenRequest,
   updateEventRequest,
 } from '@/services/events/events.api';
 import type { EventListStatus, UpdateEventInput } from '@/services/events/types';
@@ -25,6 +26,7 @@ export function useManageEvents(status: EventListStatus, search: string) {
           search: normalizedSearch || undefined,
           page: pageParam,
           limit: MANAGE_EVENTS_PAGE_SIZE,
+          includeHidden: true,
         },
         signal,
       ),
@@ -47,6 +49,19 @@ export function useUpdateEvent() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateEventInput }) =>
       updateEventRequest(id, input),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
+      await queryClient.invalidateQueries({ queryKey: ['events', variables.id] });
+    },
+  });
+}
+
+export function useSetEventHidden() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, hidden }: { id: string; hidden: boolean }) =>
+      setEventHiddenRequest(id, hidden),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['events'] });
       await queryClient.invalidateQueries({ queryKey: ['events', variables.id] });

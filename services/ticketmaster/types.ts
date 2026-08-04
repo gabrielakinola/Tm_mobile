@@ -17,6 +17,7 @@ export interface TicketmasterSearchGroup {
 
 export interface TicketmasterEventDetails {
   eventName: string;
+  ticketmasterUrl: string;
   date: string;
   startTime: string;
   imageUrl: string;
@@ -24,6 +25,7 @@ export interface TicketmasterEventDetails {
   location: string;
   latitude: string;
   longitude: string;
+  timezone: string;
   seatMapUrl: string;
   orderNumber: string;
 }

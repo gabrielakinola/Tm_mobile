@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, View } from 'react-native';
+import { Animated, Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -21,13 +21,15 @@ import {
 import { ErrorState, LoadingState, Typography } from '@/components/ui';
 import { VenueMapCard } from '@/components/VenueMapCard';
 import { EventDetailFloatingActions } from '@/features/my-events/components/EventDetailFloatingActions';
-import { EventDetailInfoSection } from '@/features/my-events/components/EventDetailInfoSection';
+import {
+  EVENT_DETAIL_SIDE_MARGIN,
+  EVENT_DETAIL_VIEW_TICKETS_HEIGHT,
+  EventDetailInfoSection,
+} from '@/features/my-events/components/EventDetailInfoSection';
 import {
   EVENT_DETAIL_INFO_SCROLL_RANGE,
-  EVENT_DETAIL_TAB_BAR_HEIGHT,
   EventDetailStickyHeader,
   getEventDetailHeroExpandedHeight,
-  getEventDetailTabsTop,
 } from '@/features/my-events/components/EventDetailStickyHeader';
 import {
   EventDetailTabs,
@@ -35,7 +37,7 @@ import {
 } from '@/features/my-events/components/EventDetailTabs';
 import { EventDetailTicketCard } from '@/features/my-events/components/EventDetailTicketCard';
 import { YouGotTicketsCard } from '@/features/my-events/components/YouGotTicketsCard';
-import { getTicketTypeLabel, resolveVenueDisplay } from '@/features/my-events/utils/event-detail';
+import { getSaleLabel, resolveVenueDisplay } from '@/features/my-events/utils/event-detail';
 import { useMyEvent } from '@/hooks/events/useMyEvent';
 import type { EventTicket } from '@/services/events/types';
 import { useAuthStore } from '@/stores/auth-store';
@@ -55,6 +57,7 @@ function maskMobileLast4(last4?: string | null): string {
 export default function MyEventDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { height: viewportHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: event, isLoading, isError, refetch } = useMyEvent(id);
   const defaultProfileFromAuth = useAuthStore((state) => state.user?.defaultProfile);
@@ -64,7 +67,7 @@ export default function MyEventDetailScreen() {
   );
   const [activeTab, setActiveTab] = useState<EventDetailTab>('tickets');
   const [infoScrollRange, setInfoScrollRange] = useState(EVENT_DETAIL_INFO_SCROLL_RANGE);
-  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  const [tabsPinned, setTabsPinned] = useState(false);
   const [transferTickets, setTransferTickets] = useState<EventTicket[]>([]);
   const scrollY = useRef(new Animated.Value(0)).current;
   const transferSheetRef = useRef<TransferAuthenticationSheetRef>(null);
@@ -72,41 +75,64 @@ export default function MyEventDetailScreen() {
   const transferToRecipientSheetRef = useRef<TransferToRecipientSheetRef>(null);
 
   const heroExpanded = getEventDetailHeroExpandedHeight(insets.top);
-  const infoScrollEnd = infoScrollRange;
-  const headerCollapseMid = infoScrollEnd * 0.65;
-
-  const expandedHeaderOpacity = useMemo(
+  const fixedHeaderHeight = heroExpanded + infoScrollRange;
+  const tabsStickyTop = Math.round(viewportHeight * 0.15);
+  const collapsedHeaderRevealTop = Math.round(viewportHeight * 0.4);
+  const tabsPinScrollOffset = Math.max(0, fixedHeaderHeight - tabsStickyTop);
+  const tabsPinTransitionStart = Math.max(0, tabsPinScrollOffset - 1);
+  const collapsedHeaderRevealStart = Math.max(0, fixedHeaderHeight - collapsedHeaderRevealTop);
+  const scrollingTabsOpacity = useMemo(
     () =>
       scrollY.interpolate({
-        inputRange: [infoScrollEnd * 0.45, infoScrollEnd * 0.85],
+        inputRange: [tabsPinTransitionStart, tabsPinScrollOffset],
         outputRange: [1, 0],
         extrapolate: 'clamp',
       }),
-    [infoScrollEnd, scrollY],
+    [scrollY, tabsPinScrollOffset, tabsPinTransitionStart],
   );
-
-  const collapsedOpacity = useMemo(
+  const pinnedLayerOpacity = useMemo(
     () =>
       scrollY.interpolate({
-        inputRange: [infoScrollEnd * 0.45, infoScrollEnd * 0.85],
+        inputRange: [tabsPinTransitionStart, tabsPinScrollOffset],
         outputRange: [0, 1],
         extrapolate: 'clamp',
       }),
-    [infoScrollEnd, scrollY],
+    [scrollY, tabsPinScrollOffset, tabsPinTransitionStart],
+  );
+  const expandedHeaderOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [collapsedHeaderRevealStart, tabsPinScrollOffset],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      }),
+    [collapsedHeaderRevealStart, scrollY, tabsPinScrollOffset],
+  );
+  const collapsedHeaderOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [collapsedHeaderRevealStart, tabsPinScrollOffset],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+      }),
+    [collapsedHeaderRevealStart, scrollY, tabsPinScrollOffset],
+  );
+  const handleScroll = useMemo(
+    () =>
+      Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+        useNativeDriver: true,
+        listener: (scrollEvent: { nativeEvent: { contentOffset: { y: number } } }) => {
+          const nextPinned = scrollEvent.nativeEvent.contentOffset.y >= tabsPinScrollOffset;
+          setTabsPinned((current) => (current === nextPinned ? current : nextPinned));
+        },
+      }),
+    [scrollY, tabsPinScrollOffset],
   );
 
-  const tabsTop = useMemo(
-    () => getEventDetailTabsTop(scrollY, insets.top, infoScrollRange),
-    [infoScrollRange, insets.top, scrollY],
-  );
-
-  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-    useNativeDriver: false,
-    listener: (event: { nativeEvent: { contentOffset: { y: number } } }) => {
-      const nextCollapsed = event.nativeEvent.contentOffset.y >= headerCollapseMid;
-      setHeaderCollapsed((prev) => (prev === nextCollapsed ? prev : nextCollapsed));
-    },
-  });
+  const handleViewTickets = () => {
+    if (!event?.id) return;
+    router.push(`/my-events/tickets/${event.id}`);
+  };
 
   if (isLoading) {
     return <LoadingState message="Loading event..." />;
@@ -116,7 +142,7 @@ export default function MyEventDetailScreen() {
     return <ErrorState onRetry={() => void refetch()} />;
   }
 
-  const ticketLabel = getTicketTypeLabel(event.presale);
+  const ticketLabel = getSaleLabel(event.saleLabel);
   const ticketCount = event.tickets.length;
   const venueDisplay = resolveVenueDisplay(event.venue, event.location);
 
@@ -129,95 +155,162 @@ export default function MyEventDetailScreen() {
         scrollY={scrollY}
         topInset={insets.top}
         infoScrollRange={infoScrollRange}
+        fixed
       />
 
-      <Animated.View
+      <View
         style={{
           position: 'absolute',
-          top: tabsTop,
+          top: heroExpanded,
           left: 0,
           right: 0,
-          zIndex: 2,
+          zIndex: 1,
+        }}
+        onLayout={(layoutEvent) => {
+          const measuredHeight = layoutEvent.nativeEvent.layout.height;
+          if (measuredHeight > 0 && measuredHeight !== infoScrollRange) {
+            setInfoScrollRange(measuredHeight);
+          }
         }}
       >
-        <EventDetailTabs activeTab={activeTab} onChange={setActiveTab} />
-      </Animated.View>
+        <EventDetailInfoSection event={event} />
+      </View>
+
+      {!tabsPinned ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="View tickets"
+          onPress={handleViewTickets}
+          style={{
+            position: 'absolute',
+            top: heroExpanded + Math.max(0, infoScrollRange - EVENT_DETAIL_VIEW_TICKETS_HEIGHT),
+            left: EVENT_DETAIL_SIDE_MARGIN,
+            right: EVENT_DETAIL_SIDE_MARGIN,
+            height: EVENT_DETAIL_VIEW_TICKETS_HEIGHT,
+            zIndex: 3,
+          }}
+        />
+      ) : null}
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={handleScroll}
         contentContainerStyle={{
-          paddingTop: heroExpanded,
           paddingBottom: FLOATING_ACTIONS_HEIGHT + insets.bottom + spacing['2xl'],
         }}
+        style={{ zIndex: 2 }}
       >
+        <View pointerEvents="none" style={{ height: fixedHeaderHeight }} />
+
+        <View style={{ backgroundColor: colors.neutral[0], minHeight: '100%' }}>
+          <Animated.View style={{ opacity: scrollingTabsOpacity }}>
+            <EventDetailTabs activeTab={activeTab} onChange={setActiveTab} />
+          </Animated.View>
+
+          {activeTab === 'tickets' ? (
+            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: spacing.lg,
+                }}
+              >
+                <View style={{ flex: 1, gap: spacing.xs }}>
+                  <Typography
+                    style={{ color: colors.neutral[900], fontSize: 15, fontWeight: '600' }}
+                  >
+                    Order {event.orderNumber}
+                  </Typography>
+                  <Typography style={{ color: colors.neutral[500], fontSize: 14 }}>
+                    x{ticketCount} Tickets
+                  </Typography>
+                </View>
+                <Pressable accessibilityRole="button" hitSlop={8}>
+                  <MoreVertical size={22} color={colors.neutral[700]} />
+                </Pressable>
+              </View>
+
+              {event.tickets.map((ticket, index) => (
+                <EventDetailTicketCard
+                  key={`${ticket.section}-${ticket.row}-${ticket.seat}-${index}`}
+                  ticket={ticket}
+                  ticketMode={event.ticketMode}
+                  label={ticketLabel}
+                />
+              ))}
+
+              <View style={{ marginTop: spacing.sm }}>
+                <VenueMapCard
+                  venue={venueDisplay.venue}
+                  location={venueDisplay.location}
+                  latitude={event.latitude}
+                  longitude={event.longitude}
+                />
+              </View>
+
+              <View style={{ marginTop: spacing.lg }}>
+                <YouGotTicketsCard event={event} />
+              </View>
+            </View>
+          ) : (
+            <View style={{ padding: spacing['2xl'], alignItems: 'center' }}>
+              <Typography style={{ color: colors.neutral[500], fontSize: 15 }}>
+                No extras for this event yet.
+              </Typography>
+            </View>
+          )}
+        </View>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: tabsStickyTop,
+          overflow: 'hidden',
+          zIndex: 4,
+          opacity: pinnedLayerOpacity,
+        }}
+      >
+        <EventDetailStickyHeader
+          event={event}
+          scrollY={scrollY}
+          topInset={insets.top}
+          infoScrollRange={infoScrollRange}
+          fixed
+          imageTransition={0}
+        />
         <View
-          onLayout={(event) => {
-            const measuredHeight = event.nativeEvent.layout.height;
-            if (measuredHeight > 0 && measuredHeight !== infoScrollRange) {
-              setInfoScrollRange(measuredHeight);
-            }
+          style={{
+            position: 'absolute',
+            top: heroExpanded,
+            left: 0,
+            right: 0,
           }}
         >
           <EventDetailInfoSection event={event} />
         </View>
+      </Animated.View>
 
-        <View style={{ height: EVENT_DETAIL_TAB_BAR_HEIGHT }} />
-
-        {activeTab === 'tickets' ? (
-          <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: spacing.lg,
-              }}
-            >
-              <View style={{ flex: 1, gap: spacing.xs }}>
-                <Typography style={{ color: colors.neutral[900], fontSize: 15, fontWeight: '600' }}>
-                  Order {event.orderNumber}
-                </Typography>
-                <Typography style={{ color: colors.neutral[500], fontSize: 14 }}>
-                  x{ticketCount} Tickets
-                </Typography>
-              </View>
-              <Pressable accessibilityRole="button" hitSlop={8}>
-                <MoreVertical size={22} color={colors.neutral[700]} />
-              </Pressable>
-            </View>
-
-            {event.tickets.map((ticket, index) => (
-              <EventDetailTicketCard
-                key={`${ticket.section}-${ticket.row}-${ticket.seat}-${index}`}
-                ticket={ticket}
-                ticketMode={event.ticketMode}
-                label={ticketLabel}
-              />
-            ))}
-
-            <View style={{ marginTop: spacing.sm }}>
-              <VenueMapCard
-                venue={venueDisplay.venue}
-                location={venueDisplay.location}
-                latitude={event.latitude}
-                longitude={event.longitude}
-              />
-            </View>
-
-            <View style={{ marginTop: spacing.lg }}>
-              <YouGotTicketsCard event={event} />
-            </View>
-          </View>
-        ) : (
-          <View style={{ padding: spacing['2xl'], alignItems: 'center' }}>
-            <Typography style={{ color: colors.neutral[500], fontSize: 15 }}>
-              No extras for this event yet.
-            </Typography>
-          </View>
-        )}
-      </Animated.ScrollView>
+      <Animated.View
+        pointerEvents={tabsPinned ? 'auto' : 'none'}
+        style={{
+          position: 'absolute',
+          top: tabsStickyTop,
+          left: 0,
+          right: 0,
+          zIndex: 5,
+          opacity: pinnedLayerOpacity,
+        }}
+      >
+        <EventDetailTabs activeTab={activeTab} onChange={setActiveTab} />
+      </Animated.View>
 
       <View
         pointerEvents="box-none"
@@ -229,13 +322,52 @@ export default function MyEventDetailScreen() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          zIndex: 3,
+          zIndex: 6,
         }}
       >
         <EventDetailBackButton onPress={() => router.back()} />
 
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: spacing.xs,
+            left: 52,
+            right: 72,
+            alignItems: 'center',
+            opacity: collapsedHeaderOpacity,
+          }}
+        >
+          <Typography
+            style={{
+              color: colors.white,
+              fontSize: 17,
+              lineHeight: 22,
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              textAlign: 'center',
+            }}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {event.name}
+          </Typography>
+          <Typography
+            style={{
+              color: colors.neutral[300],
+              fontSize: 13,
+              lineHeight: 18,
+              fontWeight: '400',
+              textAlign: 'center',
+              marginTop: spacing.sm,
+            }}
+            numberOfLines={1}
+          >
+            {event.venue}
+          </Typography>
+        </Animated.View>
+
         <View style={{ position: 'absolute', right: 0 }}>
-          {/* Invisible size anchor matching Help pill */}
           <View
             pointerEvents="none"
             style={{
@@ -249,7 +381,6 @@ export default function MyEventDetailScreen() {
           </View>
 
           <Animated.View
-            pointerEvents={headerCollapsed ? 'none' : 'box-none'}
             style={{
               position: 'absolute',
               top: 0,
@@ -279,19 +410,19 @@ export default function MyEventDetailScreen() {
           </Animated.View>
 
           <Animated.View
-            pointerEvents={headerCollapsed ? 'box-none' : 'none'}
             style={{
               position: 'absolute',
               top: 0,
               right: 0,
               bottom: 0,
               left: 0,
-              opacity: collapsedOpacity,
+              opacity: collapsedHeaderOpacity,
             }}
           >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="View tickets"
+              onPress={handleViewTickets}
               hitSlop={8}
               style={{
                 flex: 1,
@@ -339,6 +470,12 @@ export default function MyEventDetailScreen() {
       <TransferToRecipientSheet
         ref={transferToRecipientSheetRef}
         eventId={event.id}
+        event={{
+          name: event.name,
+          eventDate: event.eventDate,
+          eventTime: event.eventTime,
+          venue: event.venue,
+        }}
         tickets={transferTickets}
         ticketMode={event.ticketMode}
         onBack={() => {

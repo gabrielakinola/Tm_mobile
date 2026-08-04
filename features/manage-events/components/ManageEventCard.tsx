@@ -1,6 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { Image } from 'expo-image';
-import { Eye, Pencil, Trash2 } from 'lucide-react-native';
+import { Eye, EyeOff, Pencil, Ticket, Trash2 } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
 import type { MyEventSummary } from '@/services/events/types';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -13,7 +13,7 @@ function formatEventDate(value: string): string {
   }
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
   }).format(parsed);
 }
@@ -22,7 +22,9 @@ export interface ManageEventCardProps {
   event: MyEventSummary;
   onView: () => void;
   onEdit: () => void;
+  onToggleHidden: () => void;
   onDelete: () => void;
+  togglingHidden?: boolean;
   deleting?: boolean;
 }
 
@@ -30,9 +32,13 @@ export function ManageEventCard({
   event,
   onView,
   onEdit,
+  onToggleHidden,
   onDelete,
+  togglingHidden = false,
   deleting = false,
 }: ManageEventCardProps) {
+  const isHidden = event.hidden === true;
+
   return (
     <View
       style={{
@@ -43,6 +49,7 @@ export function ManageEventCard({
         overflow: 'hidden',
         flexDirection: 'row',
         minHeight: 104,
+        opacity: isHidden ? 0.85 : 1,
       }}
     >
       <Image
@@ -54,12 +61,33 @@ export function ManageEventCard({
 
       <View style={{ flex: 1, padding: spacing.md, gap: spacing.sm }}>
         <Pressable accessibilityRole="button" onPress={onView} style={{ gap: 2 }}>
-          <Typography
-            style={{ color: colors.neutral[950], fontSize: 16, fontWeight: '700' }}
-            numberOfLines={2}
-          >
-            {event.name}
-          </Typography>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
+            <Typography
+              style={{
+                flex: 1,
+                color: colors.neutral[950],
+                fontSize: 16,
+                fontWeight: '700',
+              }}
+              numberOfLines={2}
+            >
+              {event.name}
+            </Typography>
+            {isHidden ? (
+              <View
+                style={{
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: 2,
+                  borderRadius: radius.sm,
+                  backgroundColor: colors.neutral[100],
+                }}
+              >
+                <Typography style={{ color: colors.neutral[600], fontSize: 11, fontWeight: '700' }}>
+                  Hidden
+                </Typography>
+              </View>
+            ) : null}
+          </View>
           <Typography style={{ color: colors.neutral[500], fontSize: 13 }} numberOfLines={1}>
             {event.venue}
           </Typography>
@@ -71,19 +99,31 @@ export function ManageEventCard({
         </Pressable>
 
         <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: 'auto' }}>
-          <ActionChip
+          <IconAction
             label="View"
-            icon={<Eye size={14} color={colors.pulse[700]} strokeWidth={2.2} />}
+            icon={<Ticket size={16} color={colors.pulse[700]} strokeWidth={2.2} />}
             onPress={onView}
           />
-          <ActionChip
+          <IconAction
             label="Edit"
-            icon={<Pencil size={14} color={colors.pulse[700]} strokeWidth={2.2} />}
+            icon={<Pencil size={16} color={colors.pulse[700]} strokeWidth={2.2} />}
             onPress={onEdit}
           />
-          <ActionChip
+          <IconAction
+            label={isHidden ? 'Unhide' : 'Hide'}
+            icon={
+              isHidden ? (
+                <Eye size={16} color={colors.pulse[700]} strokeWidth={2.2} />
+              ) : (
+                <EyeOff size={16} color={colors.pulse[700]} strokeWidth={2.2} />
+              )
+            }
+            onPress={onToggleHidden}
+            disabled={togglingHidden}
+          />
+          <IconAction
             label="Delete"
-            icon={<Trash2 size={14} color={colors.error[500]} strokeWidth={2.2} />}
+            icon={<Trash2 size={16} color={colors.error[500]} strokeWidth={2.2} />}
             onPress={onDelete}
             destructive
             disabled={deleting}
@@ -94,7 +134,7 @@ export function ManageEventCard({
   );
 }
 
-function ActionChip({
+function IconAction({
   label,
   icon,
   onPress,
@@ -113,27 +153,18 @@ function ActionChip({
       accessibilityLabel={label}
       disabled={disabled}
       onPress={onPress}
+      hitSlop={6}
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        paddingHorizontal: spacing.sm,
-        paddingVertical: 6,
+        width: 36,
+        height: 36,
         borderRadius: radius.sm,
+        alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: destructive ? colors.error[50] : colors.pulse[50],
         opacity: disabled ? 0.6 : 1,
       }}
     >
       {icon}
-      <Typography
-        style={{
-          color: destructive ? colors.error[500] : colors.pulse[700],
-          fontSize: 12,
-          fontWeight: '700',
-        }}
-      >
-        {label}
-      </Typography>
     </Pressable>
   );
 }

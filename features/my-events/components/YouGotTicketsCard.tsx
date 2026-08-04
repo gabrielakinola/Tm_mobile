@@ -1,18 +1,22 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Share } from 'lucide-react-native';
 import { TicketmasterText } from '@/components/ui/TicketmasterText';
 import { Typography } from '@/components/ui/Typography';
+import {
+  EventDateBadgeOverlay,
+  getScaledEventDateBadgeDotFontSize,
+} from '@/features/my-events/components/EventDateBadgeOverlay';
 import { MY_EVENT_CARD_DARK_BG } from '@/features/my-events/components/MyEventCard';
 import { resolveVenueDisplay } from '@/features/my-events/utils/event-detail';
-import { getEventBadgeDateParts } from '@/lib/event-datetime';
 import type { MyEventDetail } from '@/services/events/types';
 import { colors, spacing } from '@/theme/tokens';
 
 const MINI_IMAGE_ASPECT_RATIO = 1.15 / 0.64;
-const DATE_FONT_SIZE = 9;
-const DOT_FONT_SIZE = DATE_FONT_SIZE * 2;
+const MINI_DATE_FONT_SIZE = 14;
+const MINI_DATE_DOT_FONT_SIZE = getScaledEventDateBadgeDotFontSize(MINI_DATE_FONT_SIZE);
 const VENUE_COLOR = '#C8C8C8';
 const VENUE_FONT_SIZE = 11;
 const SOCIAL_BG = '#F0F0F0';
@@ -25,34 +29,32 @@ export interface YouGotTicketsCardProps {
   onSharePress?: () => void;
 }
 
-function MiniDateBadge({ eventDate, eventTime }: { eventDate: string; eventTime: string }) {
-  const parts = getEventBadgeDateParts(eventDate, eventTime);
-
+function MiniDateBadge({
+  eventDate,
+  eventTime,
+  containerWidth,
+}: {
+  eventDate: string;
+  eventTime: string;
+  containerWidth: number;
+}) {
   return (
-    <View style={styles.dateBadge}>
-      {parts.map((part, index) => (
-        <View key={`${part}-${index}`} style={styles.datePart}>
-          {index > 0 ? (
-            <Text accessible={false} style={styles.dateDot}>
-              ·
-            </Text>
-          ) : null}
-          <TicketmasterText
-            fontSize={DATE_FONT_SIZE}
-            color={colors.white}
-            commaOffsetY={0.5}
-            style={styles.dateText}
-          >
-            {part}
-          </TicketmasterText>
-        </View>
-      ))}
-    </View>
+    <EventDateBadgeOverlay
+      eventDate={eventDate}
+      eventTime={eventTime}
+      containerWidth={containerWidth}
+      layout="card"
+      fontSize={MINI_DATE_FONT_SIZE}
+      dotFontSize={MINI_DATE_DOT_FONT_SIZE}
+      shrinkToFit
+      compactHeight
+    />
   );
 }
 
 export function YouGotTicketsCard({ event, onSharePress }: YouGotTicketsCardProps) {
   const { venue } = resolveVenueDisplay(event.venue, event.location);
+  const [miniImageWidth, setMiniImageWidth] = useState(0);
 
   return (
     <View style={styles.wrapper}>
@@ -73,14 +75,28 @@ export function YouGotTicketsCard({ event, onSharePress }: YouGotTicketsCardProp
 
           <View style={styles.bannerContent}>
             <View style={styles.miniCard}>
-              <View style={styles.miniImageWrap}>
+              <View
+                style={styles.miniImageWrap}
+                onLayout={(event) => {
+                  const nextWidth = event.nativeEvent.layout.width;
+                  if (nextWidth > 0 && nextWidth !== miniImageWidth) {
+                    setMiniImageWidth(nextWidth);
+                  }
+                }}
+              >
                 <Image
                   source={{ uri: event.imageUrl }}
                   style={styles.miniImage}
                   contentFit="cover"
                   transition={200}
                 />
-                <MiniDateBadge eventDate={event.eventDate} eventTime={event.eventTime} />
+                {miniImageWidth > 0 ? (
+                  <MiniDateBadge
+                    eventDate={event.eventDate}
+                    eventTime={event.eventTime}
+                    containerWidth={miniImageWidth}
+                  />
+                ) : null}
               </View>
 
               <View style={styles.miniInfo}>
@@ -167,37 +183,6 @@ const styles = StyleSheet.create({
   miniImage: {
     width: '100%',
     height: '100%',
-  },
-  dateBadge: {
-    position: 'absolute',
-    left: 0,
-    bottom: 0,
-    maxWidth: '100%',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    backgroundColor: MY_EVENT_CARD_DARK_BG,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-  },
-  datePart: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateDot: {
-    color: colors.white,
-    fontSize: DOT_FONT_SIZE,
-    lineHeight: DOT_FONT_SIZE,
-    fontWeight: '700',
-    marginHorizontal: 0,
-    includeFontPadding: false,
-  },
-  dateText: {
-    color: colors.white,
-    fontSize: DATE_FONT_SIZE,
-    lineHeight: 11,
-    fontWeight: '700',
-    letterSpacing: 0.2,
   },
   miniInfo: {
     paddingHorizontal: spacing.sm,

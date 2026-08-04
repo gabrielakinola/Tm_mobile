@@ -1,10 +1,13 @@
 export type AccessType = 'LIFETIME' | 'MONTHLY';
 
+export type UserRole = 'USER' | 'SUPERADMIN';
+
 export type DevicePlatform = 'ios' | 'android' | 'web';
 
 export interface DefaultProfileSummary {
   id: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
   displayEmail: string;
   city: string;
   mobileLast4: string;
@@ -19,6 +22,7 @@ export interface AuthUser {
   email: string;
   accountName: string;
   accessType: AccessType;
+  role: UserRole;
   subscriptionExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;

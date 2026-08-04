@@ -1,9 +1,9 @@
-/** Display format used in create/edit event date fields: "Sat, Jul 14, 2026" */
+/** Display format used in create/edit event date fields: "Sat, Jul 01, 2026" */
 export function formatEventDateDisplay(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
   }).format(date);
 }

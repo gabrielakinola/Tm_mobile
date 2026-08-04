@@ -1,12 +1,5 @@
-export function getTicketTypeLabel(presale: string): string {
-  if (!presale.trim() || presale === 'general') {
-    return 'Standard ticket';
-  }
-
-  return presale
-    .split(/[-_\s]+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+export function getSaleLabel(saleLabel: string): string {
+  return saleLabel.trim() || 'Standard Ticket';
 }
 
 /** Prefer API `location`; otherwise split "Venue — City" style venue strings. */

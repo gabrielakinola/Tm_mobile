@@ -14,7 +14,7 @@ import {
 import { ManageEventCard } from '@/features/manage-events/components/ManageEventCard';
 import { ManageEventsListSkeleton } from '@/features/manage-events/components/ManageEventCardSkeleton';
 import { ManageEventsTabs } from '@/features/manage-events/components/ManageEventsTabs';
-import { useDeleteEvent, useManageEvents } from '@/hooks/events/useManageEvents';
+import { useDeleteEvent, useManageEvents, useSetEventHidden } from '@/hooks/events/useManageEvents';
 import type { EventListStatus, MyEventSummary } from '@/services/events/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -28,6 +28,7 @@ export default function ManageEventsScreen() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState<MyEventSummary | null>(null);
   const deleteMutation = useDeleteEvent();
+  const setHiddenMutation = useSetEventHidden();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -142,7 +143,16 @@ export default function ManageEventsScreen() {
               event={item}
               onView={() => router.push(`/my-events/${item.id}`)}
               onEdit={() => router.push(`/create-event?id=${item.id}`)}
+              onToggleHidden={() =>
+                setHiddenMutation.mutate({
+                  id: item.id,
+                  hidden: !item.hidden,
+                })
+              }
               onDelete={() => setPendingDelete(item)}
+              togglingHidden={
+                setHiddenMutation.isPending && setHiddenMutation.variables?.id === item.id
+              }
               deleting={deleteMutation.isPending && deleteMutation.variables === item.id}
             />
           )}

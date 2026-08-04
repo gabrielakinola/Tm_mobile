@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { ChevronRight, Trash2 } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
 import {
-  TRANSFER_STATUS_LABELS,
+  getTransferHistoryStatusLabel,
   type TransferHistoryItem,
 } from '@/services/transfers/transfers.api';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -16,7 +16,7 @@ function formatEventDate(value: string): string {
   }
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
   }).format(parsed);
 }
@@ -28,7 +28,7 @@ function formatTransferredAt(value: string): string {
   }
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
     year: 'numeric',
   }).format(parsed);
 }
@@ -51,7 +51,7 @@ export function TransferHistoryCard({
   const eventName = event?.name || 'Event unavailable';
   const venue = event?.venue || 'Venue unavailable';
   const ticketLabel = `${transfer.ticketCount} ticket${transfer.ticketCount === 1 ? '' : 's'}`;
-  const statusLabel = TRANSFER_STATUS_LABELS[transfer.status] ?? transfer.status;
+  const statusLabel = getTransferHistoryStatusLabel(transfer);
 
   return (
     <View

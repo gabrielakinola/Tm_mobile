@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Pulse Tickets",
+    "name": "Ticketmaster",
     "slug": "pulse-tickets",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "scheme": "pulse-tickets",
+    "icon": "./assets/images/tm.png",
+    "scheme": "pulsetickets",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -19,10 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#026CDF",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/tm.png"
       },
       "package": "com.pulsetickets.app",
       "predictiveBackGestureEnabled": false,
@@ -36,6 +34,7 @@
       "expo-router",
       "expo-font",
       "expo-secure-store",
+      "expo-web-browser",
       [
         "expo-splash-screen",
         {
@@ -48,12 +47,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Pulse Tickets to access your photos to upload event images."
+          "photosPermission": "Allow Ticketmaster to access your photos to upload event images."
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "apiBaseUrl": "https://api.supportticketmaster.com/api"
     }
   }
 }

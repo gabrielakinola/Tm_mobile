@@ -21,18 +21,20 @@ export function buildCreateEventFormData(input: CreateEventInput): FormData {
   formData.append('name', input.name.trim());
   formData.append('eventDate', input.eventDate.trim());
   formData.append('eventTime', input.eventTime.trim());
-  formData.append('purchaseDate', input.purchaseDate.trim());
-  formData.append('purchaseTime', input.purchaseTime.trim());
+  appendIfPresent(formData, 'purchaseDate', input.purchaseDate);
+  appendIfPresent(formData, 'purchaseTime', input.purchaseTime);
   formData.append('venue', input.venue.trim());
   formData.append('currency', input.currency.trim());
   formData.append('orderNumber', input.orderNumber.trim());
-  formData.append('presale', input.presale.trim());
+  formData.append('saleLabel', input.saleLabel.trim());
   formData.append('ticketMode', input.ticketMode);
   formData.append('tickets', JSON.stringify(input.tickets));
 
   appendIfPresent(formData, 'entrance', input.entrance);
+  appendIfPresent(formData, 'ticketmasterUrl', input.ticketmasterUrl);
   appendIfPresent(formData, 'latitude', input.latitude);
   appendIfPresent(formData, 'longitude', input.longitude);
+  appendIfPresent(formData, 'timezone', input.timezone);
   appendIfPresent(formData, 'seatMapUrl', input.seatMapUrl);
   appendIfPresent(formData, 'price', input.price);
   appendIfPresent(formData, 'fee', input.fee);
@@ -79,6 +81,13 @@ export async function deleteEventRequest(id: string): Promise<void> {
   await apiClient.delete(`/events/${id}`);
 }
 
+export async function setEventHiddenRequest(id: string, hidden: boolean): Promise<MyEventDetail> {
+  const response = await apiClient.patch<MyEventDetail>(`/events/${id}/hidden`, {
+    hidden,
+  });
+  return response.data;
+}
+
 export async function getMyEventsRequest(
   params: EventListStatus | MyEventsListParams,
   signal?: AbortSignal,
@@ -91,6 +100,7 @@ export async function getMyEventsRequest(
       ...(query.search?.trim() ? { search: query.search.trim() } : {}),
       ...(query.page !== undefined ? { page: query.page } : {}),
       ...(query.limit !== undefined ? { limit: query.limit } : {}),
+      ...(query.includeHidden ? { includeHidden: true } : {}),
     },
     signal,
   });
