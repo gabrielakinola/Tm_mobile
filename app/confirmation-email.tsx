@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
 import { ChevronLeft } from 'lucide-react-native';
-import {
-  Header,
-  KeyboardAwareScrollView,
-  KeyboardAwareTextInput,
-  Typography,
-} from '@/components/ui';
+import { Header, KeyboardAwareScrollView, Typography } from '@/components/ui';
+import { ConfirmationEmailErrorModal } from '@/features/for-you/components/ConfirmationEmailErrorModal';
+import { ConfirmationEmailSuccessModal } from '@/features/for-you/components/ConfirmationEmailSuccessModal';
 import { UpcomingEventPicker } from '@/features/for-you/components/UpcomingEventPicker';
+import { sendEventConfirmationEmailRequest } from '@/services/events/events.api';
 import type { MyEventSummary } from '@/services/events/types';
+import { useAuthStore } from '@/stores/auth-store';
+import { useProfileStore } from '@/stores/profile-store';
 import { useTheme } from '@/theme';
 import { colors, radius, spacing } from '@/theme/tokens';
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ConfirmationEmailScreen() {
   const { theme } = useTheme();
@@ -22,9 +22,37 @@ export default function ConfirmationEmailScreen() {
   const router = useRouter();
   const [selectedEventId, setSelectedEventId] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<MyEventSummary | null>(null);
-  const [recipientEmail, setRecipientEmail] = useState('');
+  const [successEmail, setSuccessEmail] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const canSend = Boolean(selectedEventId) && EMAIL_PATTERN.test(recipientEmail.trim());
+  const defaultProfileFromAuth = useAuthStore((state) => state.user?.defaultProfile);
+  const defaultProfileFromStore = useProfileStore((state) => state.defaultProfile);
+  const recipientEmail =
+    defaultProfileFromStore?.displayEmail?.trim() ||
+    defaultProfileFromAuth?.displayEmail?.trim() ||
+    '';
+
+  const canSend = Boolean(selectedEventId) && Boolean(recipientEmail);
+
+  const sendMutation = useMutation({
+    mutationFn: (eventId: string) => sendEventConfirmationEmailRequest(eventId),
+    onSuccess: (result) => {
+      setErrorMessage(null);
+      setSuccessEmail(result.to);
+    },
+    onError: (error) => {
+      const message = axios.isAxiosError(error)
+        ? (error.response?.data?.message as string | string[] | undefined)
+        : undefined;
+      const normalized = Array.isArray(message)
+        ? message.join('\n')
+        : typeof message === 'string'
+          ? message
+          : 'Could not send the confirmation email. Please try again.';
+      setSuccessEmail(null);
+      setErrorMessage(normalized);
+    },
+  });
 
   const handleSelectEvent = (eventId: string, event?: MyEventSummary) => {
     setSelectedEventId(eventId);
@@ -33,21 +61,18 @@ export default function ConfirmationEmailScreen() {
 
   const handleSendConfirmationEmail = () => {
     if (!selectedEventId) {
-      Alert.alert('Select an event', 'Choose an upcoming event before sending.');
+      setErrorMessage('Choose an upcoming event before sending.');
       return;
     }
 
-    const email = recipientEmail.trim();
-    if (!EMAIL_PATTERN.test(email)) {
-      Alert.alert('Invalid email', 'Enter a valid recipient email address.');
+    if (!recipientEmail) {
+      setErrorMessage(
+        'Your default profile needs a display email before you can send a confirmation.',
+      );
       return;
     }
 
-    // Endpoint + template will be wired next; selection UI is ready.
-    Alert.alert(
-      'Ready to send',
-      'Event and recipient are set. Confirmation email sending will be connected next.',
-    );
+    sendMutation.mutate(selectedEventId);
   };
 
   return (
@@ -76,8 +101,8 @@ export default function ConfirmationEmailScreen() {
         }}
       >
         <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 20 }}>
-          Choose an upcoming event and recipient email to send a confirmation. Sending will be
-          connected next.
+          Choose an upcoming event to send a Ticketmaster-style confirmation email to your default
+          profile email.
         </Typography>
 
         <View
@@ -105,30 +130,35 @@ export default function ConfirmationEmailScreen() {
             <Typography style={{ color: colors.neutral[700], fontWeight: '600', fontSize: 13 }}>
               Recipient Email
             </Typography>
-            <KeyboardAwareTextInput
-              value={recipientEmail}
-              onChangeText={setRecipientEmail}
-              placeholder="recipient@email.com"
-              placeholderTextColor={colors.neutral[400]}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
+            <View
               style={{
                 borderWidth: 1,
-                borderColor: colors.neutral[300],
+                borderColor: colors.neutral[200],
                 borderRadius: radius.sm,
                 minHeight: 40,
                 paddingHorizontal: spacing.md,
-                color: colors.neutral[900],
-                fontSize: 14,
-                backgroundColor: colors.neutral[0],
+                justifyContent: 'center',
+                backgroundColor: colors.neutral[50],
               }}
-            />
+            >
+              <Typography
+                style={{
+                  color: recipientEmail ? colors.neutral[800] : colors.neutral[400],
+                  fontSize: 14,
+                }}
+                numberOfLines={1}
+              >
+                {recipientEmail || 'No default profile email set'}
+              </Typography>
+            </View>
+            <Typography style={{ color: colors.neutral[400], fontSize: 12, lineHeight: 16 }}>
+              Sent to your default profile display email.
+            </Typography>
           </View>
 
           <Pressable
             accessibilityRole="button"
-            disabled={!canSend}
+            disabled={!canSend || sendMutation.isPending}
             onPress={handleSendConfirmationEmail}
             style={{
               height: 40,
@@ -136,15 +166,31 @@ export default function ConfirmationEmailScreen() {
               backgroundColor: theme.colors.primary,
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: canSend ? 1 : 0.5,
+              opacity: canSend && !sendMutation.isPending ? 1 : 0.5,
             }}
           >
-            <Typography style={{ color: colors.white, fontWeight: '700', fontSize: 14 }}>
-              Send Confirmation Email
-            </Typography>
+            {sendMutation.isPending ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Typography style={{ color: colors.white, fontWeight: '700', fontSize: 14 }}>
+                Send Confirmation Email
+              </Typography>
+            )}
           </Pressable>
         </View>
       </KeyboardAwareScrollView>
+
+      <ConfirmationEmailSuccessModal
+        visible={successEmail !== null}
+        recipientEmail={successEmail ?? ''}
+        eventName={selectedEvent?.name}
+        onClose={() => setSuccessEmail(null)}
+      />
+      <ConfirmationEmailErrorModal
+        visible={errorMessage !== null}
+        message={errorMessage ?? ''}
+        onClose={() => setErrorMessage(null)}
+      />
     </View>
   );
 }

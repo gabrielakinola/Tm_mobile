@@ -44,11 +44,29 @@ export interface ActiveSessionSummary {
   lastActiveAt: string;
 }
 
+export interface DeviceChangePolicy {
+  applies: boolean;
+  changeUsed: boolean;
+  changesRemaining: number | null;
+  cycleEndsAt: string | null;
+}
+
 export interface ActiveSessionConflictError {
   statusCode: 409;
   message: string;
   code: 'ACTIVE_SESSION_CONFLICT';
   activeSession: ActiveSessionSummary;
+  deviceChangePolicy?: DeviceChangePolicy;
+  error: string;
+  path: string;
+  timestamp: string;
+}
+
+export interface DeviceChangeLimitError {
+  statusCode: 403;
+  message: string;
+  code: 'DEVICE_CHANGE_LIMIT_REACHED';
+  deviceChangePolicy?: DeviceChangePolicy;
   error: string;
   path: string;
   timestamp: string;

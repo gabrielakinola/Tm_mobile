@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, Modal as RNModal, View } from 'react-nati
 import { LogOut, Smartphone, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
 import { hapticLight } from '@/lib/haptics';
-import type { ActiveSessionSummary } from '@/services/auth/types';
+import type { ActiveSessionSummary, DeviceChangePolicy } from '@/services/auth/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 function formatPlatform(platform: string): string {
@@ -28,6 +28,7 @@ function formatLastActive(value?: string): string | null {
 export interface ActiveSessionConflictModalProps {
   visible: boolean;
   session: ActiveSessionSummary | null;
+  deviceChangePolicy?: DeviceChangePolicy | null;
   loading?: boolean;
   error?: string | null;
   onClose: () => void;
@@ -37,6 +38,7 @@ export interface ActiveSessionConflictModalProps {
 export function ActiveSessionConflictModal({
   visible,
   session,
+  deviceChangePolicy = null,
   loading = false,
   error = null,
   onClose,
@@ -46,6 +48,8 @@ export function ActiveSessionConflictModal({
   const deviceLabel = session
     ? `${session.deviceName} (${formatPlatform(String(session.platform))})`
     : 'another device';
+  const showMonthlyDeviceWarning =
+    deviceChangePolicy?.applies === true && deviceChangePolicy.changesRemaining === 1;
 
   const handleClose = () => {
     if (loading) return;
@@ -164,9 +168,37 @@ export function ActiveSessionConflictModal({
           </View>
 
           <Typography style={{ color: colors.neutral[600], fontSize: 13, lineHeight: 19 }}>
-            Log out of that device to continue signing in here. This will end the other session
-            immediately.
+            Continuing here will log out of that device immediately.
           </Typography>
+
+          {showMonthlyDeviceWarning ? (
+            <View
+              style={{
+                borderRadius: radius.lg,
+                borderWidth: 1,
+                borderColor: colors.warning[500],
+                backgroundColor: colors.warning[50],
+                padding: spacing.md,
+                gap: spacing.xs,
+              }}
+            >
+              <Typography
+                style={{
+                  color: colors.warning[700],
+                  fontSize: 13,
+                  fontWeight: '700',
+                  lineHeight: 18,
+                }}
+              >
+                One device change this subscription
+              </Typography>
+              <Typography style={{ color: colors.neutral[700], fontSize: 13, lineHeight: 19 }}>
+                If you continue, this uses your only device change for the current subscription
+                period. After this login, you will not be able to switch devices again until your
+                next subscription renewal.
+              </Typography>
+            </View>
+          ) : null}
 
           {error ? (
             <Typography style={{ color: colors.error[500], fontSize: 13 }}>{error}</Typography>

@@ -13,6 +13,7 @@ import {
   UserRound,
 } from 'lucide-react-native';
 import { Header, Typography, useToast } from '@/components/ui';
+import { AltStoreRefreshCard } from '@/features/for-you/components/AltStoreRefreshCard';
 import { ChangePasswordModal } from '@/features/for-you/components/ChangePasswordModal';
 import { getSubscriptionDaysLeft, getSubscriptionDaysLeftTone } from '@/lib/subscription';
 import { useAuthStore } from '@/stores/auth-store';
@@ -279,6 +280,8 @@ export default function ForYouScreen() {
               </Typography>
             </Pressable>
           </View>
+
+          <AltStoreRefreshCard />
         </View>
 
         <View

@@ -115,3 +115,12 @@ export async function getMyEventByIdRequest(
   const response = await apiClient.get<MyEventDetail>(`/events/${id}`, { signal });
   return response.data;
 }
+
+export async function sendEventConfirmationEmailRequest(
+  eventId: string,
+): Promise<{ sent: true; to: string }> {
+  const response = await apiClient.post<{ sent: true; to: string }>(
+    `/events/${eventId}/confirmation-email`,
+  );
+  return response.data;
+}

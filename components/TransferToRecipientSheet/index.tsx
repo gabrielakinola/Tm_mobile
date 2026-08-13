@@ -27,10 +27,14 @@ import { Typography } from '@/components/ui/Typography';
 import { settingsQueryKey } from '@/features/settings/settings-query-key';
 import { useUserSettings } from '@/hooks/settings/useUserSettings';
 import { useCreateTransfer } from '@/hooks/transfers/useCreateTransfer';
+import { isWalletTrialActive } from '@/lib/subscription';
 import type { EventTicket, TicketMode } from '@/services/events/types';
 import type { UserSettingsResponse } from '@/services/settings/settings.api';
 import { useAuthStore } from '@/stores/auth-store';
 import { colors, radius, spacing } from '@/theme/tokens';
+
+/** One wallet-pass credit covers an entire transfer, regardless of ticket count. */
+const WALLET_PASSES_PER_TRANSFER = 1;
 
 const SNAP_POINTS = ['75%'];
 const BACKDROP_OPACITY = 0.45;
@@ -104,6 +108,7 @@ export const TransferToRecipientSheet = memo(
       const createTransfer = useCreateTransfer();
       const userSettingsQuery = useUserSettings();
       const accessType = useAuthStore((state) => state.user?.accessType);
+      const accountCreatedAt = useAuthStore((state) => state.user?.createdAt);
 
       useImperativeHandle(
         ref,
@@ -199,8 +204,15 @@ export const TransferToRecipientSheet = memo(
 
       const shouldShowWalletCreditsModal = useCallback(() => {
         const settings = userSettingsQuery.data;
-        return accessType === 'MONTHLY' && Boolean(settings?.enableWalletForTicketTransfers);
-      }, [accessType, userSettingsQuery.data]);
+        if (accessType !== 'MONTHLY' || !settings?.enableWalletForTicketTransfers) {
+          return false;
+        }
+        // Free trial: transfer immediately — no credits modal.
+        if (accountCreatedAt && isWalletTrialActive(accountCreatedAt)) {
+          return false;
+        }
+        return true;
+      }, [accessType, accountCreatedAt, userSettingsQuery.data]);
 
       const continueTransfer = useCallback(
         (values: TransferRecipientFormValues) => {
@@ -364,7 +376,7 @@ export const TransferToRecipientSheet = memo(
 
           <TransferWalletCreditsModal
             visible={walletCreditsModalVisible}
-            ticketCount={tickets.length}
+            passesNeeded={WALLET_PASSES_PER_TRANSFER}
             availableCredits={settings?.walletPassesRemaining ?? 0}
             walletEnabled={Boolean(settings?.enableWalletForTicketTransfers)}
             transferring={createTransfer.isPending}

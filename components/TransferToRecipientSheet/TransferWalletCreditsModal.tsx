@@ -63,7 +63,8 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export interface TransferWalletCreditsModalProps {
   visible: boolean;
-  ticketCount: number;
+  /** Wallet-pass credits required for this transfer (1 credit covers the whole transfer). */
+  passesNeeded: number;
   availableCredits: number;
   walletEnabled: boolean;
   transferring?: boolean;
@@ -74,7 +75,7 @@ export interface TransferWalletCreditsModalProps {
 
 export function TransferWalletCreditsModal({
   visible,
-  ticketCount,
+  passesNeeded,
   availableCredits,
   walletEnabled,
   transferring = false,
@@ -88,10 +89,11 @@ export function TransferWalletCreditsModal({
   const [creditsOverride, setCreditsOverride] = useState<number | null>(null);
 
   const effectiveCredits = creditsOverride ?? availableCredits;
-  const shortfall = Math.max(0, ticketCount - effectiveCredits);
-  const hasEnoughCredits = effectiveCredits >= ticketCount;
+  const shortfall = Math.max(0, passesNeeded - effectiveCredits);
+  const hasEnoughCredits = effectiveCredits >= passesNeeded;
   const buyAmount = shortfall * WALLET_PASS_PRICE_NGN;
   const busy = transferring || buying;
+  const passLabel = passesNeeded === 1 ? 'pass' : 'passes';
 
   useEffect(() => {
     if (!visible) {
@@ -167,7 +169,7 @@ export function TransferWalletCreditsModal({
 
       // Bypass React Query staleTime so we always read the credited balance.
       let refreshed = await getUserSettings();
-      if (refreshed.walletPassesRemaining < ticketCount) {
+      if (refreshed.walletPassesRemaining < passesNeeded) {
         await wait(PAYMENT_STATUS_DELAY_MS);
         refreshed = await getUserSettings();
       }
@@ -221,20 +223,17 @@ export function TransferWalletCreditsModal({
           ) : hasEnoughCredits ? (
             <View style={styles.details}>
               <DetailRow label="Available credits" value={String(effectiveCredits)} />
-              <DetailRow
-                label="Credits needed"
-                value={`${ticketCount} pass${ticketCount === 1 ? '' : 'es'}`}
-              />
+              <DetailRow label="Credits needed" value={`${passesNeeded} ${passLabel}`} />
             </View>
           ) : (
             <>
               <Typography style={styles.message}>
-                This transfer needs {ticketCount} pass{ticketCount === 1 ? '' : 'es'}, but you only
-                have {effectiveCredits} available.
+                This transfer needs {passesNeeded} {passLabel} (1 pass covers the whole transfer),
+                but you only have {effectiveCredits} available.
               </Typography>
               <View style={styles.details}>
                 <DetailRow label="Available credits" value={String(effectiveCredits)} />
-                <DetailRow label="Credits needed" value={String(ticketCount)} />
+                <DetailRow label="Credits needed" value={String(passesNeeded)} />
                 <DetailRow label="Shortfall" value={String(shortfall)} />
               </View>
             </>

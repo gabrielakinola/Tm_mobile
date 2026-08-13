@@ -178,8 +178,9 @@ export function WalletPassSection({
       </Typography>
 
       <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 20 }}>
-        {WALLET_ACCEPTANCE_EXPLANATION} Each pass costs {formatNaira(WALLET_PASS_PRICE_NGN)} after
-        your {WALLET_TRIAL_DAYS}-day free trial.
+        {WALLET_ACCEPTANCE_EXPLANATION} Each transfer uses 1 pass (
+        {formatNaira(WALLET_PASS_PRICE_NGN)}
+        ), regardless of how many tickets you send, after your {WALLET_TRIAL_DAYS}-day free trial.
       </Typography>
 
       {trialActive ? (

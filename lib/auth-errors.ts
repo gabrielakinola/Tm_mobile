@@ -3,9 +3,10 @@ import {
   SUBSCRIPTION_EXPIRED_CODE,
   type SubscriptionExpiredErrorResponse,
 } from '@/lib/subscription-billing';
-import type { ActiveSessionConflictError } from '@/services/auth/types';
+import type { ActiveSessionConflictError, DeviceChangeLimitError } from '@/services/auth/types';
 
 export const ACTIVE_SESSION_CONFLICT_CODE = 'ACTIVE_SESSION_CONFLICT';
+export const DEVICE_CHANGE_LIMIT_REACHED_CODE = 'DEVICE_CHANGE_LIMIT_REACHED';
 
 export function isActiveSessionConflict(
   error: unknown,
@@ -15,6 +16,16 @@ export function isActiveSessionConflict(
     error.response?.status === 409 &&
     error.response.data?.code === ACTIVE_SESSION_CONFLICT_CODE &&
     Boolean(error.response.data?.activeSession)
+  );
+}
+
+export function isDeviceChangeLimitReached(
+  error: unknown,
+): error is AxiosError<DeviceChangeLimitError> {
+  return (
+    axios.isAxiosError(error) &&
+    error.response?.status === 403 &&
+    error.response.data?.code === DEVICE_CHANGE_LIMIT_REACHED_CODE
   );
 }
 
@@ -31,6 +42,13 @@ export function isSubscriptionExpiredError(
 export function getLoginErrorMessage(error: unknown): string {
   if (isActiveSessionConflict(error)) {
     return error.response?.data.message ?? 'This account is already signed in on another device.';
+  }
+
+  if (isDeviceChangeLimitReached(error)) {
+    return (
+      error.response?.data.message ??
+      'You have already changed devices once during this subscription period.'
+    );
   }
 
   if (isSubscriptionExpiredError(error)) {

@@ -14,12 +14,14 @@ import {
 } from '@/components/ui';
 import { API_BASE_URL } from '@/constants/app';
 import { ActiveSessionConflictModal } from '@/features/auth/components/ActiveSessionConflictModal';
+import { DeviceChangeLimitModal } from '@/features/auth/components/DeviceChangeLimitModal';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas/login.schema';
 import { SubscriptionExpiredModal } from '@/features/subscription/components/SubscriptionExpiredModal';
 import { useForceLogin, useLogin } from '@/hooks/auth/useLogin';
 import {
   getLoginErrorMessage,
   isActiveSessionConflict,
+  isDeviceChangeLimitReached,
   isSubscriptionExpiredError,
 } from '@/lib/auth-errors';
 import { openFlutterwaveCheckout } from '@/lib/flutterwave-checkout';
@@ -27,7 +29,7 @@ import {
   toSubscriptionRenewalDetails,
   type SubscriptionRenewalDetails,
 } from '@/lib/subscription-billing';
-import type { ActiveSessionSummary } from '@/services/auth/types';
+import type { ActiveSessionSummary, DeviceChangePolicy } from '@/services/auth/types';
 import {
   getFlutterwavePaymentStatusRequest,
   initiateSubscriptionPaymentRequest,
@@ -69,6 +71,8 @@ export default function LoginScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [conflictSession, setConflictSession] = useState<ActiveSessionSummary | null>(null);
+  const [deviceChangePolicy, setDeviceChangePolicy] = useState<DeviceChangePolicy | null>(null);
+  const [deviceLimitMessage, setDeviceLimitMessage] = useState<string | null>(null);
   const [pendingCredentials, setPendingCredentials] = useState<LoginFormValues | null>(null);
   const [forceError, setForceError] = useState<string | null>(null);
   const [showApiUrlBanner, setShowApiUrlBanner] = useState(true);
@@ -95,6 +99,7 @@ export default function LoginScreen() {
   const closeConflictModal = () => {
     if (forceLoginMutation.isPending) return;
     setConflictSession(null);
+    setDeviceChangePolicy(null);
     setPendingCredentials(null);
     setForceError(null);
   };
@@ -109,6 +114,7 @@ export default function LoginScreen() {
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     setForceError(null);
+    setDeviceLimitMessage(null);
 
     try {
       await loginMutation.mutateAsync(values);
@@ -127,9 +133,14 @@ export default function LoginScreen() {
         openSubscriptionExpired(details);
         return;
       }
+      if (isDeviceChangeLimitReached(error)) {
+        setDeviceLimitMessage(getLoginErrorMessage(error));
+        return;
+      }
       if (isActiveSessionConflict(error)) {
         setPendingCredentials(values);
         setConflictSession(error.response?.data.activeSession ?? null);
+        setDeviceChangePolicy(error.response?.data.deviceChangePolicy ?? null);
         return;
       }
       setFormError(getLoginErrorMessage(error));
@@ -143,10 +154,12 @@ export default function LoginScreen() {
     try {
       await forceLoginMutation.mutateAsync(pendingCredentials);
       setConflictSession(null);
+      setDeviceChangePolicy(null);
       setPendingCredentials(null);
     } catch (error) {
       if (isSubscriptionExpiredError(error)) {
         setConflictSession(null);
+        setDeviceChangePolicy(null);
         setPendingCredentials(null);
         setForceError(null);
         const details = toSubscriptionRenewalDetails(
@@ -160,6 +173,14 @@ export default function LoginScreen() {
           return;
         }
         openSubscriptionExpired(details);
+        return;
+      }
+      if (isDeviceChangeLimitReached(error)) {
+        setConflictSession(null);
+        setDeviceChangePolicy(null);
+        setPendingCredentials(null);
+        setForceError(null);
+        setDeviceLimitMessage(getLoginErrorMessage(error));
         return;
       }
       setForceError(getLoginErrorMessage(error));
@@ -418,10 +439,17 @@ export default function LoginScreen() {
       <ActiveSessionConflictModal
         visible={Boolean(conflictSession)}
         session={conflictSession}
+        deviceChangePolicy={deviceChangePolicy}
         loading={forceLoginMutation.isPending}
         error={forceError}
         onClose={closeConflictModal}
         onForceLogoutAndContinue={() => void handleForceLogoutAndContinue()}
+      />
+
+      <DeviceChangeLimitModal
+        visible={deviceLimitMessage !== null}
+        message={deviceLimitMessage}
+        onClose={() => setDeviceLimitMessage(null)}
       />
 
       <SubscriptionExpiredModal
