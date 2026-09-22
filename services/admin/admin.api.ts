@@ -21,6 +21,7 @@ export interface AdminUserDetail extends AdminUserSummary {
     unlimitedWalletPasses: boolean;
     enableTransferFeeInterruption: boolean;
     transferFeePerTicket: string;
+    transferFeeCurrency?: string;
     enableMinTicketsInterruption: boolean;
     minTicketsPerTransfer: string;
     enableTransferAcceptanceAuthorization: boolean;
@@ -53,11 +54,77 @@ export async function createAdminUserRequest(
   return response.data;
 }
 
+export type AdminSubscriptionAction = 'renew' | 'topup';
+
+export interface ExtendAdminUserSubscriptionResponse extends AdminUserSummary {
+  action: AdminSubscriptionAction;
+}
+
+export async function extendAdminUserSubscriptionRequest(
+  userId: string,
+): Promise<ExtendAdminUserSubscriptionResponse> {
+  const response = await apiClient.post<ExtendAdminUserSubscriptionResponse>(
+    `/admin/users/${userId}/extend-subscription`,
+  );
+  return response.data;
+}
+
 export async function deleteAdminUserRequest(
   userId: string,
 ): Promise<{ success: boolean; id: string }> {
   const response = await apiClient.delete<{ success: boolean; id: string }>(
     `/admin/users/${userId}`,
+  );
+  return response.data;
+}
+
+export type AdminUserActivitySort = 'most' | 'least';
+
+export interface AdminUserActivityEvent {
+  id: string;
+  name: string;
+  imageUrl: string;
+  eventDate: string;
+  eventTime: string;
+  venue: string;
+  ticketCount: number;
+  hidden: boolean;
+  createdAt: string;
+  transferCount: number;
+}
+
+export interface AdminUserActivityResponse {
+  date: string;
+  sort: AdminUserActivitySort;
+  user: {
+    id: string;
+    email: string;
+    accountName: string;
+  };
+  eventCount: number;
+  transferCount: number;
+  events: AdminUserActivityEvent[];
+}
+
+export interface GetAdminUserActivityInput {
+  userId: string;
+  date: string;
+  sort: AdminUserActivitySort;
+  timezoneOffsetMinutes: number;
+}
+
+export async function getAdminUserActivityRequest(
+  input: GetAdminUserActivityInput,
+): Promise<AdminUserActivityResponse> {
+  const response = await apiClient.get<AdminUserActivityResponse>(
+    `/admin/users/${input.userId}/activity`,
+    {
+      params: {
+        date: input.date,
+        sort: input.sort,
+        timezoneOffsetMinutes: input.timezoneOffsetMinutes,
+      },
+    },
   );
   return response.data;
 }

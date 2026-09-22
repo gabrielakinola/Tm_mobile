@@ -1,14 +1,15 @@
 import { View } from 'react-native';
-import { colors, radius, spacing } from '@/theme/tokens';
+import { APP_DARK_SURFACE, APP_INPUT_BG } from '@/constants/app-surface';
+import { radius, spacing } from '@/theme/tokens';
 
 export function SearchSkeleton() {
   return (
     <View
       style={{
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         borderRadius: radius.lg,
-        backgroundColor: colors.neutral[50],
+        backgroundColor: APP_INPUT_BG,
         padding: spacing.md,
         gap: spacing.sm,
       }}
@@ -18,7 +19,7 @@ export function SearchSkeleton() {
           width: '70%',
           height: 16,
           borderRadius: radius.sm,
-          backgroundColor: colors.neutral[200],
+          backgroundColor: APP_DARK_SURFACE,
         }}
       />
       <View
@@ -26,18 +27,18 @@ export function SearchSkeleton() {
           width: 72,
           height: 12,
           borderRadius: radius.sm,
-          backgroundColor: colors.neutral[200],
+          backgroundColor: APP_DARK_SURFACE,
         }}
       />
-      <View style={{ height: 1, backgroundColor: colors.neutral[200] }} />
+      <View style={{ height: 1, backgroundColor: APP_DARK_SURFACE }} />
       {[0, 1].map((row) => (
         <View
           key={row}
           style={{
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             borderRadius: radius.md,
-            backgroundColor: colors.neutral[0],
+            backgroundColor: APP_INPUT_BG,
             padding: spacing.sm,
             flexDirection: 'row',
             alignItems: 'center',
@@ -50,7 +51,7 @@ export function SearchSkeleton() {
                 width: '45%',
                 height: 12,
                 borderRadius: radius.sm,
-                backgroundColor: colors.neutral[200],
+                backgroundColor: APP_DARK_SURFACE,
               }}
             />
             <View
@@ -58,7 +59,7 @@ export function SearchSkeleton() {
                 width: '72%',
                 height: 11,
                 borderRadius: radius.sm,
-                backgroundColor: colors.neutral[200],
+                backgroundColor: APP_DARK_SURFACE,
               }}
             />
           </View>
@@ -67,7 +68,7 @@ export function SearchSkeleton() {
               width: 68,
               height: 30,
               borderRadius: radius.sm,
-              backgroundColor: colors.neutral[200],
+              backgroundColor: APP_DARK_SURFACE,
             }}
           />
         </View>

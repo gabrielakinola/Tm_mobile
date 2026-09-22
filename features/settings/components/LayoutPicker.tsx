@@ -1,6 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { Layers } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import { APP_DARK_MUTED, APP_DARK_SURFACE, APP_INPUT_BG } from '@/constants/app-surface';
 import type { TicketLayout } from '@/features/settings/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -18,8 +19,8 @@ export function LayoutPicker({ value, onChange }: LayoutPickerProps) {
   return (
     <View style={{ gap: spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <Layers size={16} color={colors.neutral[600]} />
-        <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+        <Layers size={16} color={APP_DARK_MUTED} />
+        <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
           Ticket experience style
         </Typography>
       </View>
@@ -36,9 +37,9 @@ export function LayoutPicker({ value, onChange }: LayoutPickerProps) {
               style={{
                 flex: 1,
                 borderWidth: 1,
-                borderColor: active ? colors.pulse[500] : colors.neutral[300],
+                borderColor: active ? colors.pulse[500] : APP_DARK_SURFACE,
                 borderRadius: radius.md,
-                backgroundColor: active ? colors.pulse[50] : colors.neutral[0],
+                backgroundColor: active ? APP_DARK_SURFACE : APP_INPUT_BG,
                 paddingVertical: spacing.md,
                 paddingHorizontal: spacing.sm,
                 alignItems: 'center',
@@ -47,14 +48,14 @@ export function LayoutPicker({ value, onChange }: LayoutPickerProps) {
             >
               <Typography
                 style={{
-                  color: active ? colors.pulse[700] : colors.neutral[900],
+                  color: active ? colors.pulse[300] : colors.white,
                   fontSize: 14,
                   fontWeight: '700',
                 }}
               >
                 {option.title}
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 {option.subtitle}
               </Typography>
             </Pressable>

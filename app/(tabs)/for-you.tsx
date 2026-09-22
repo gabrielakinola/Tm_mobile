@@ -13,11 +13,17 @@ import {
   UserRound,
 } from 'lucide-react-native';
 import { Header, Typography, useToast } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_DIVIDER,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { AltStoreRefreshCard } from '@/features/for-you/components/AltStoreRefreshCard';
 import { ChangePasswordModal } from '@/features/for-you/components/ChangePasswordModal';
 import { getSubscriptionDaysLeft, getSubscriptionDaysLeftTone } from '@/lib/subscription';
 import { useAuthStore } from '@/stores/auth-store';
-import { useTheme } from '@/theme';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 interface QuickActionItem {
@@ -73,7 +79,6 @@ const QUICK_ACTION_ROWS = [
 ];
 
 export default function ForYouScreen() {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { show } = useToast();
@@ -135,8 +140,8 @@ export default function ForYouScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <Header title="For You" />
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
+      <Header title="Watchlist" />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -148,7 +153,7 @@ export default function ForYouScreen() {
         <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
           <Typography
             style={{
-              color: colors.neutral[400],
+              color: APP_DARK_MUTED,
               fontSize: 11,
               lineHeight: 16,
               fontWeight: '700',
@@ -163,9 +168,7 @@ export default function ForYouScreen() {
           <View
             style={{
               borderRadius: radius.md,
-              borderWidth: 1,
-              borderColor: colors.neutral[200],
-              backgroundColor: colors.neutral[0],
+              backgroundColor: APP_CARD_BG,
               padding: spacing.md,
               gap: spacing.md,
               marginBottom: spacing.lg,
@@ -192,18 +195,18 @@ export default function ForYouScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: radius.full,
-                    backgroundColor: colors.neutral[200],
+                    backgroundColor: APP_DARK_SURFACE,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                   accessibilityLabel="Account avatar"
                 >
-                  <UserRound size={24} color={colors.neutral[500]} strokeWidth={1.8} />
+                  <UserRound size={24} color={APP_DARK_MUTED} strokeWidth={1.8} />
                 </View>
                 <Typography
                   style={{
                     flex: 1,
-                    color: colors.neutral[900],
+                    color: colors.white,
                     fontWeight: '700',
                     fontSize: 15,
                   }}
@@ -254,7 +257,7 @@ export default function ForYouScreen() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderTopWidth: 1,
-                borderTopColor: colors.neutral[200],
+                borderTopColor: APP_DARK_DIVIDER,
                 paddingTop: spacing.md,
               }}
             >
@@ -266,16 +269,16 @@ export default function ForYouScreen() {
                     borderRadius: radius.sm,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: colors.pulse[50],
+                    backgroundColor: APP_DARK_SURFACE,
                   }}
                 >
-                  <KeyRound size={16} color={colors.pulse[600]} />
+                  <KeyRound size={16} color={colors.pulse[400]} />
                 </View>
-                <Typography style={{ color: colors.neutral[900], fontSize: 14, fontWeight: '700' }}>
+                <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '700' }}>
                   Change password
                 </Typography>
               </View>
-              <Typography style={{ color: colors.pulse[600], fontSize: 14, fontWeight: '600' }}>
+              <Typography style={{ color: colors.pulse[400], fontSize: 14, fontWeight: '600' }}>
                 Update
               </Typography>
             </Pressable>
@@ -286,7 +289,7 @@ export default function ForYouScreen() {
 
         <View
           style={{
-            backgroundColor: colors.neutral[100],
+            backgroundColor: APP_DARK_BG,
             paddingHorizontal: spacing.lg,
             paddingTop: spacing.md,
             paddingBottom: spacing.lg,
@@ -296,7 +299,7 @@ export default function ForYouScreen() {
           <View style={{ gap: spacing.xs }}>
             <Typography
               style={{
-                color: colors.neutral[400],
+                color: APP_DARK_MUTED,
                 fontSize: 11,
                 lineHeight: 16,
                 fontWeight: '700',
@@ -306,7 +309,7 @@ export default function ForYouScreen() {
             >
               Quick actions
             </Typography>
-            <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 18 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 18 }}>
               Create and manage events, update profiles and settings, send confirmation emails, or
               review transfer history.
             </Typography>
@@ -327,9 +330,7 @@ export default function ForYouScreen() {
                       style={{
                         flex: 1,
                         borderRadius: radius.md,
-                        borderWidth: 1,
-                        borderColor: colors.neutral[200],
-                        backgroundColor: colors.neutral[0],
+                        backgroundColor: APP_CARD_BG,
                         padding: spacing.md,
                         gap: spacing.sm,
                       }}
@@ -339,19 +340,17 @@ export default function ForYouScreen() {
                           width: 28,
                           height: 28,
                           borderRadius: radius.sm,
-                          backgroundColor: colors.pulse[50],
+                          backgroundColor: APP_DARK_SURFACE,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Icon size={16} color={theme.colors.primary} />
+                        <Icon size={16} color={colors.pulse[400]} />
                       </View>
-                      <Typography
-                        style={{ color: colors.neutral[900], fontWeight: '700', fontSize: 15 }}
-                      >
+                      <Typography style={{ color: colors.white, fontWeight: '700', fontSize: 15 }}>
                         {item.title}
                       </Typography>
-                      <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+                      <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                         {item.subtitle}
                       </Typography>
                     </Pressable>

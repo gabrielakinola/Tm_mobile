@@ -10,6 +10,12 @@ import {
   KeyboardAwareTextInput,
   Typography,
 } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { TransferConfirmModal } from '@/features/transfer-history/components/TransferConfirmModal';
 import { TransferHistoryCard } from '@/features/transfer-history/components/TransferHistoryCard';
 import { TransferHistoryListSkeleton } from '@/features/transfer-history/components/TransferHistoryCardSkeleton';
@@ -73,7 +79,7 @@ export default function TransferHistoryScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Transfer history"
         leftAction={
@@ -94,26 +100,26 @@ export default function TransferHistoryScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             gap: spacing.sm,
-            backgroundColor: colors.white,
+            backgroundColor: APP_CARD_BG,
             borderRadius: radius.md,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             paddingHorizontal: spacing.md,
             minHeight: 44,
           }}
         >
-          <Search size={18} color={colors.neutral[400]} strokeWidth={2} />
+          <Search size={18} color={APP_DARK_MUTED} strokeWidth={2} />
           <KeyboardAwareTextInput
             containerStyle={{ flex: 1 }}
             value={searchInput}
             onChangeText={setSearchInput}
             placeholder="Event, venue, recipient name or email"
-            placeholderTextColor={colors.neutral[400]}
+            placeholderTextColor={APP_DARK_MUTED}
             autoCapitalize="none"
             autoCorrect={false}
             style={{
               flex: 1,
-              color: colors.neutral[900],
+              color: colors.white,
               fontSize: 15,
               paddingVertical: spacing.sm,
             }}
@@ -149,6 +155,7 @@ export default function TransferHistoryScreen() {
         <TransferHistoryListSkeleton />
       ) : query.isError && transfers.length === 0 ? (
         <ErrorState
+          inverted
           title="Couldn’t load transfers"
           message="Check your connection and try again."
           onRetry={() => void query.refetch()}
@@ -172,6 +179,7 @@ export default function TransferHistoryScreen() {
           }
           ListEmptyComponent={
             <EmptyState
+              inverted
               icon={ArrowLeftRight}
               title={hasSearch ? 'No matching transfers' : 'No transfers yet'}
               description={
@@ -209,7 +217,7 @@ export default function TransferHistoryScreen() {
               <Typography
                 style={{
                   textAlign: 'center',
-                  color: colors.neutral[400],
+                  color: APP_DARK_MUTED,
                   fontSize: 12,
                   paddingVertical: spacing.sm,
                 }}

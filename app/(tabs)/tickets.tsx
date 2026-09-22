@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { CalendarDays } from 'lucide-react-native';
 import { CountryFlagBadge } from '@/components/navigation/CountryFlagBadge';
 import { EmptyState, ErrorState, LoadingState, Typography } from '@/components/ui';
+import { APP_DARK_BG } from '@/constants/app-surface';
 import { SCREEN_HEADER_BG } from '@/constants/screen-header';
 import {
   MY_EVENT_CARD_GAP,
@@ -36,7 +37,7 @@ export default function TicketsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[0] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <View style={{ backgroundColor: SCREEN_HEADER_BG, paddingTop: insets.top }}>
         <View
           style={{
@@ -118,7 +119,7 @@ export default function TicketsScreen() {
             <MyEventCard event={item} onPress={() => router.push(`/my-events/${item.id}`)} />
           )}
           ItemSeparatorComponent={() => (
-            <View style={{ height: MY_EVENT_CARD_GAP, backgroundColor: colors.neutral[0] }} />
+            <View style={{ height: MY_EVENT_CARD_GAP, backgroundColor: APP_DARK_BG }} />
           )}
           contentContainerStyle={{
             paddingHorizontal: MY_EVENT_CARD_SIDE_MARGIN,

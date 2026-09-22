@@ -363,6 +363,7 @@ export const TransferToRecipientSheet = memo(
                   ticketMode={ticketMode}
                   recipient={feeSummaryRecipient}
                   transferFeePerTicket={settings?.transferFeePerTicket ?? ''}
+                  transferFeeCurrency={settings?.transferFeeCurrency ?? 'USD'}
                 />
               ) : null}
 

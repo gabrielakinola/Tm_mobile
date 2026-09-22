@@ -20,6 +20,7 @@ import {
 } from '@/components/TransferToRecipientSheet';
 import { ErrorState, LoadingState, Typography } from '@/components/ui';
 import { VenueMapCard } from '@/components/VenueMapCard';
+import { APP_DARK_BG } from '@/constants/app-surface';
 import { EventDetailFloatingActions } from '@/features/my-events/components/EventDetailFloatingActions';
 import {
   EVENT_DETAIL_SIDE_MARGIN,
@@ -135,11 +136,19 @@ export default function MyEventDetailScreen() {
   };
 
   if (isLoading) {
-    return <LoadingState message="Loading event..." />;
+    return (
+      <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
+        <LoadingState message="Loading event..." />
+      </View>
+    );
   }
 
   if (isError || !event) {
-    return <ErrorState onRetry={() => void refetch()} />;
+    return (
+      <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
+        <ErrorState onRetry={() => void refetch()} />
+      </View>
+    );
   }
 
   const ticketLabel = getSaleLabel(event.saleLabel);
@@ -147,7 +156,7 @@ export default function MyEventDetailScreen() {
   const venueDisplay = resolveVenueDisplay(event.venue, event.location);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[0] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <StatusBar style="light" translucent />
 
       <EventDetailStickyHeader
@@ -203,7 +212,7 @@ export default function MyEventDetailScreen() {
       >
         <View pointerEvents="none" style={{ height: fixedHeaderHeight }} />
 
-        <View style={{ backgroundColor: colors.neutral[0], minHeight: '100%' }}>
+        <View style={{ backgroundColor: APP_DARK_BG, minHeight: '100%' }}>
           <Animated.View style={{ opacity: scrollingTabsOpacity }}>
             <EventDetailTabs activeTab={activeTab} onChange={setActiveTab} />
           </Animated.View>
@@ -219,17 +228,15 @@ export default function MyEventDetailScreen() {
                 }}
               >
                 <View style={{ flex: 1, gap: spacing.xs }}>
-                  <Typography
-                    style={{ color: colors.neutral[900], fontSize: 15, fontWeight: '600' }}
-                  >
+                  <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '600' }}>
                     Order {event.orderNumber}
                   </Typography>
-                  <Typography style={{ color: colors.neutral[500], fontSize: 14 }}>
+                  <Typography style={{ color: colors.neutral[400], fontSize: 14 }}>
                     x{ticketCount} Tickets
                   </Typography>
                 </View>
                 <Pressable accessibilityRole="button" hitSlop={8}>
-                  <MoreVertical size={22} color={colors.neutral[700]} />
+                  <MoreVertical size={22} color={colors.white} />
                 </Pressable>
               </View>
 
@@ -257,7 +264,7 @@ export default function MyEventDetailScreen() {
             </View>
           ) : (
             <View style={{ padding: spacing['2xl'], alignItems: 'center' }}>
-              <Typography style={{ color: colors.neutral[500], fontSize: 15 }}>
+              <Typography style={{ color: colors.neutral[400], fontSize: 15 }}>
                 No extras for this event yet.
               </Typography>
             </View>

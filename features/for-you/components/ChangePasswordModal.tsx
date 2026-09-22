@@ -11,6 +11,12 @@ import {
 import { isAxiosError } from 'axios';
 import { Eye, EyeOff, LockKeyhole, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { changePasswordRequest } from '@/services/auth/auth.api';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -161,7 +167,7 @@ export function ChangePasswordModal({ visible, onClose, onSuccess }: ChangePassw
       <View style={styles.field}>
         <Typography style={styles.fieldLabel}>{label}</Typography>
         <View style={styles.inputWrap}>
-          <LockKeyhole size={17} color={colors.neutral[500]} />
+          <LockKeyhole size={17} color={APP_DARK_MUTED} />
           <TextInput
             value={value}
             onChangeText={(nextValue) => {
@@ -186,9 +192,9 @@ export function ChangePasswordModal({ visible, onClose, onSuccess }: ChangePassw
             }
           >
             {isVisible ? (
-              <EyeOff size={19} color={colors.neutral[600]} />
+              <EyeOff size={19} color={APP_DARK_MUTED} />
             ) : (
-              <Eye size={19} color={colors.neutral[600]} />
+              <Eye size={19} color={APP_DARK_MUTED} />
             )}
           </Pressable>
         </View>
@@ -216,7 +222,7 @@ export function ChangePasswordModal({ visible, onClose, onSuccess }: ChangePassw
                 onPress={handleClose}
                 style={styles.closeButton}
               >
-                <X size={18} color={colors.neutral[700]} strokeWidth={2.2} />
+                <X size={18} color={colors.white} strokeWidth={2.2} />
               </Pressable>
             </View>
 
@@ -278,10 +284,8 @@ const styles = {
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: colors.neutral[0],
+    backgroundColor: APP_CARD_BG,
     borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -296,9 +300,9 @@ const styles = {
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.pulse[50],
+    backgroundColor: APP_DARK_SURFACE,
     borderWidth: 1,
-    borderColor: colors.pulse[100],
+    borderColor: colors.pulse[600],
   },
   closeButton: {
     width: 32,
@@ -306,19 +310,19 @@ const styles = {
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.neutral[100],
+    backgroundColor: APP_DARK_SURFACE,
   },
   copy: {
     gap: spacing.xs,
   },
   title: {
-    color: colors.neutral[950],
+    color: colors.white,
     fontSize: 22,
     fontWeight: '700',
     lineHeight: 28,
   },
   message: {
-    color: colors.neutral[600],
+    color: APP_DARK_MUTED,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -329,7 +333,7 @@ const styles = {
     gap: spacing.xs,
   },
   fieldLabel: {
-    color: colors.neutral[800],
+    color: colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -339,14 +343,14 @@ const styles = {
     alignItems: 'center',
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.neutral[300],
+    borderColor: APP_DARK_SURFACE,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.neutral[0],
+    backgroundColor: APP_INPUT_BG,
   },
   input: {
     flex: 1,
-    color: colors.neutral[900],
+    color: colors.white,
     fontSize: 16,
     paddingVertical: spacing.sm,
   },
@@ -360,7 +364,7 @@ const styles = {
     justifyContent: 'space-between',
   },
   strengthLabel: {
-    color: colors.neutral[500],
+    color: APP_DARK_MUTED,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -376,10 +380,10 @@ const styles = {
     flex: 1,
     height: 5,
     borderRadius: radius.full,
-    backgroundColor: colors.neutral[200],
+    backgroundColor: APP_DARK_SURFACE,
   },
   strengthHint: {
-    color: colors.neutral[500],
+    color: APP_DARK_MUTED,
     fontSize: 11,
     lineHeight: 15,
   },

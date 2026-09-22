@@ -1,6 +1,12 @@
 import { TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
 import { useKeyboardAwareInputFocus } from '@/components/ui/KeyboardAwareScrollView';
 import { Typography } from '@/components/ui/Typography';
+import {
+  APP_CARD_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 export interface FormFieldProps extends TextInputProps {
@@ -31,7 +37,7 @@ export function FormField({
   return (
     <View style={[{ gap: spacing.xs }, containerStyle]}>
       {label ? (
-        <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+        <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
           {label}
           {required ? (
             <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
@@ -47,9 +53,9 @@ export function FormField({
         style={{
           minHeight: 42,
           borderWidth: 1,
-          borderColor: hasError ? colors.error[500] : colors.neutral[300],
+          borderColor: hasError ? colors.error[500] : APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_INPUT_BG,
           paddingHorizontal: spacing.md,
           flexDirection: 'row',
           alignItems: 'center',
@@ -58,11 +64,11 @@ export function FormField({
       >
         {leftAddon}
         <TextInput
-          placeholderTextColor={colors.neutral[400]}
+          placeholderTextColor={APP_DARK_MUTED}
           style={[
             {
               flex: 1,
-              color: colors.neutral[800],
+              color: colors.white,
               fontSize: 14,
               paddingVertical: 10,
             },
@@ -76,7 +82,7 @@ export function FormField({
       {error ? (
         <Typography style={{ color: colors.error[500], fontSize: 12 }}>{error}</Typography>
       ) : hint ? (
-        <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>{hint}</Typography>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>{hint}</Typography>
       ) : null}
     </View>
   );
@@ -94,14 +100,14 @@ export function OrderNumberField({ value, onChangeText, error }: OrderNumberFiel
 
   return (
     <View style={{ gap: spacing.xs }}>
-      <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+      <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
         Order number
         <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
           {' '}
           *
         </Typography>
       </Typography>
-      <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+      <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
         # is fixed; enter 2 digits, 6 digits, / then a 2-3 letter code (e.g. TX or FLO).
       </Typography>
       <View
@@ -110,9 +116,9 @@ export function OrderNumberField({ value, onChangeText, error }: OrderNumberFiel
         style={{
           minHeight: 42,
           borderWidth: 1,
-          borderColor: hasError ? colors.error[500] : colors.neutral[300],
+          borderColor: hasError ? colors.error[500] : APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_INPUT_BG,
           flexDirection: 'row',
           overflow: 'hidden',
         }}
@@ -120,14 +126,14 @@ export function OrderNumberField({ value, onChangeText, error }: OrderNumberFiel
         <View
           style={{
             width: 42,
-            backgroundColor: colors.neutral[100],
+            backgroundColor: APP_DARK_SURFACE,
             borderRightWidth: 1,
-            borderRightColor: colors.neutral[300],
+            borderRightColor: APP_DARK_SURFACE,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Typography style={{ color: colors.neutral[600], fontWeight: '700', fontSize: 16 }}>
+          <Typography style={{ color: colors.white, fontWeight: '700', fontSize: 16 }}>
             #
           </Typography>
         </View>
@@ -135,11 +141,11 @@ export function OrderNumberField({ value, onChangeText, error }: OrderNumberFiel
           value={value}
           onChangeText={onChangeText}
           placeholder="94-456485/FLO"
-          placeholderTextColor={colors.neutral[400]}
+          placeholderTextColor={APP_DARK_MUTED}
           onFocus={onFocus}
           style={{
             flex: 1,
-            color: colors.neutral[800],
+            color: colors.white,
             fontSize: 14,
             paddingHorizontal: spacing.md,
             paddingVertical: 10,
@@ -157,7 +163,7 @@ export function SectionLabel({ children }: { children: string }) {
   return (
     <Typography
       style={{
-        color: colors.neutral[500],
+        color: APP_DARK_MUTED,
         fontSize: 11,
         fontWeight: '700',
         letterSpacing: 0.8,
@@ -174,9 +180,7 @@ export function FormCard({ children }: { children: React.ReactNode }) {
   return (
     <View
       style={{
-        backgroundColor: colors.neutral[0],
-        borderWidth: 1,
-        borderColor: colors.neutral[200],
+        backgroundColor: APP_CARD_BG,
         borderRadius: radius.lg,
         padding: spacing.lg,
         gap: spacing.lg,

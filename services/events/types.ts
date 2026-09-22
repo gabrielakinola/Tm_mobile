@@ -28,6 +28,13 @@ export interface CreatedEvent {
   currency: string;
   price: string | null;
   fee: string | null;
+  paymentMethod?: string;
+  cardLast4?: string;
+  cardHolderName?: string;
+  billingStreet?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
   orderNumber: string;
   saleLabel: string;
   ticketMode: TicketMode;
@@ -65,6 +72,13 @@ export interface CreateEventInput {
   currency: string;
   price?: string;
   fee?: string;
+  paymentMethod?: string;
+  cardLast4?: string;
+  cardHolderName?: string;
+  billingStreet?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
   orderNumber: string;
   saleLabel: string;
   ticketMode: TicketMode;

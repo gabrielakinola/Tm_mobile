@@ -23,7 +23,7 @@ export { Header, HeaderIconButton, type HeaderProps } from './Header';
 export { HorizontalList, type HorizontalListProps } from './HorizontalList';
 export { Icon, type IconProps, type IconSize } from './Icon';
 export { IconButton, type IconButtonProps, type IconButtonSize } from './IconButton';
-export { Input, type InputProps, type InputSize } from './Input';
+export { Input, type InputProps, type InputSize, type InputTone } from './Input';
 export {
   KeyboardAwareScrollView,
   useKeyboardAwareInputFocus,

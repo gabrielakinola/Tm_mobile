@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, View, type ViewStyle } from 'react-native';
 import { Clock, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { TimePickerWheelColumn } from '@/features/create-event/components/TimePickerWheelColumn';
 import {
   defaultEventTime,
@@ -76,20 +83,20 @@ export function TimePickerField({
         style={{
           minHeight: 42,
           borderWidth: 1,
-          borderColor: hasError ? colors.error[500] : colors.neutral[300],
+          borderColor: hasError ? colors.error[500] : APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_INPUT_BG,
           paddingHorizontal: spacing.md,
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.sm,
         }}
       >
-        <Clock size={16} color={colors.neutral[500]} />
+        <Clock size={16} color={APP_DARK_MUTED} />
         <Typography
           style={{
             flex: 1,
-            color: value ? colors.neutral[800] : colors.neutral[400],
+            color: value ? colors.white : APP_DARK_MUTED,
             fontSize: 14,
             paddingVertical: 10,
           }}
@@ -126,11 +133,11 @@ export function TimePickerField({
           />
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: APP_CARD_BG,
               borderRadius: radius.xl,
               padding: spacing.lg,
               borderWidth: 1,
-              borderColor: colors.neutral[200],
+              borderColor: APP_DARK_SURFACE,
               gap: spacing.md,
             }}
           >
@@ -142,11 +149,11 @@ export function TimePickerField({
               }}
             >
               <View style={{ gap: 2, flex: 1 }}>
-                <Typography style={{ color: colors.neutral[500], fontSize: 12, fontWeight: '600' }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
                   Select time
                 </Typography>
                 <Typography
-                  style={{ color: colors.neutral[950], fontSize: 20, fontWeight: '700' }}
+                  style={{ color: colors.white, fontSize: 20, fontWeight: '700' }}
                   numberOfLines={1}
                 >
                   {formatEventTimeDisplay(draft)}
@@ -163,10 +170,10 @@ export function TimePickerField({
                   borderRadius: radius.full,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: colors.neutral[100],
+                  backgroundColor: APP_DARK_BG,
                 }}
               >
-                <X size={16} color={colors.neutral[700]} />
+                <X size={16} color={APP_DARK_MUTED} />
               </Pressable>
             </View>
 
@@ -222,12 +229,12 @@ export function TimePickerField({
                   minHeight: 44,
                   borderRadius: radius.md,
                   borderWidth: 1,
-                  borderColor: colors.neutral[300],
+                  borderColor: APP_DARK_SURFACE,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+                <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                   Now
                 </Typography>
               </Pressable>

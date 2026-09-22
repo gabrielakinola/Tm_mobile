@@ -1,6 +1,13 @@
 import { ActivityIndicator, Pressable, Modal as RNModal, View } from 'react-native';
 import { LogOut, Smartphone, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { hapticLight } from '@/lib/haptics';
 import type { ActiveSessionSummary, DeviceChangePolicy } from '@/services/auth/types';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -76,11 +83,11 @@ export function ActiveSessionConflictModal({
       >
         <Pressable
           style={{
-            backgroundColor: colors.neutral[0],
+            backgroundColor: APP_CARD_BG,
             borderRadius: radius.xl,
             padding: spacing.xl,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             gap: spacing.lg,
           }}
           onPress={(event) => event.stopPropagation()}
@@ -96,7 +103,7 @@ export function ActiveSessionConflictModal({
             <View style={{ flex: 1, gap: spacing.xs }}>
               <Typography
                 style={{
-                  color: colors.neutral[950],
+                  color: colors.white,
                   fontSize: 20,
                   fontWeight: '700',
                   lineHeight: 26,
@@ -104,7 +111,7 @@ export function ActiveSessionConflictModal({
               >
                 Already signed in
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 14, lineHeight: 20 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, lineHeight: 20 }}>
                 This account can only be active on one device at a time.
               </Typography>
             </View>
@@ -120,17 +127,17 @@ export function ActiveSessionConflictModal({
                 borderRadius: radius.full,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: colors.neutral[100],
+                backgroundColor: APP_DARK_BG,
               }}
             >
-              <X size={16} color={colors.neutral[700]} strokeWidth={2.2} />
+              <X size={16} color={APP_DARK_MUTED} strokeWidth={2.2} />
             </Pressable>
           </View>
 
           <View
             style={{
               borderRadius: radius.lg,
-              backgroundColor: colors.neutral[100],
+              backgroundColor: APP_INPUT_BG,
               padding: spacing.md,
               flexDirection: 'row',
               alignItems: 'center',
@@ -142,7 +149,7 @@ export function ActiveSessionConflictModal({
                 width: 44,
                 height: 44,
                 borderRadius: radius.md,
-                backgroundColor: colors.pulse[50],
+                backgroundColor: APP_DARK_SURFACE,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -150,24 +157,24 @@ export function ActiveSessionConflictModal({
               <Smartphone size={22} color={colors.pulse[600]} strokeWidth={2} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12, fontWeight: '600' }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
                 Currently logged in on
               </Typography>
               <Typography
-                style={{ color: colors.neutral[950], fontSize: 16, fontWeight: '700' }}
+                style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}
                 numberOfLines={2}
               >
                 {deviceLabel}
               </Typography>
               {lastActive ? (
-                <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                   Last active {lastActive}
                 </Typography>
               ) : null}
             </View>
           </View>
 
-          <Typography style={{ color: colors.neutral[600], fontSize: 13, lineHeight: 19 }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 19 }}>
             Continuing here will log out of that device immediately.
           </Typography>
 
@@ -177,14 +184,14 @@ export function ActiveSessionConflictModal({
                 borderRadius: radius.lg,
                 borderWidth: 1,
                 borderColor: colors.warning[500],
-                backgroundColor: colors.warning[50],
+                backgroundColor: 'rgba(245, 158, 11, 0.16)',
                 padding: spacing.md,
                 gap: spacing.xs,
               }}
             >
               <Typography
                 style={{
-                  color: colors.warning[700],
+                  color: colors.warning[400],
                   fontSize: 13,
                   fontWeight: '700',
                   lineHeight: 18,
@@ -192,7 +199,7 @@ export function ActiveSessionConflictModal({
               >
                 One device change this subscription
               </Typography>
-              <Typography style={{ color: colors.neutral[700], fontSize: 13, lineHeight: 19 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 19 }}>
                 If you continue, this uses your only device change for the current subscription
                 period. After this login, you will not be able to switch devices again until your
                 next subscription renewal.
@@ -221,13 +228,13 @@ export function ActiveSessionConflictModal({
                 minHeight: 48,
                 borderRadius: radius.lg,
                 borderWidth: 1,
-                borderColor: colors.neutral[300],
+                borderColor: APP_DARK_SURFACE,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              <Typography style={{ color: colors.neutral[800], fontSize: 15, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '600' }}>
                 Cancel
               </Typography>
             </Pressable>

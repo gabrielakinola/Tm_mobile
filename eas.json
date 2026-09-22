@@ -21,6 +21,9 @@
     "production": {
       "distribution": "store",
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.supportticketmaster.com/api"
+      },
       "ios": {
         "resourceClass": "m-medium"
       }
@@ -29,7 +32,10 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "6801186846"
+        "ascAppId": "6801186846",
+        "ascApiKeyPath": "./secrets/AuthKey_A477VF626Z.p8",
+        "ascApiKeyId": "A477VF626Z",
+        "ascApiKeyIssuerId": "6e6932c8-df06-4bcf-8e23-c551587ca22b"
       }
     },
     "preview": {

@@ -6,6 +6,7 @@ export interface UserSettingsResponse {
   unlimitedWalletPasses: boolean;
   enableTransferFeeInterruption: boolean;
   transferFeePerTicket: string;
+  transferFeeCurrency?: string;
   enableMinTicketsInterruption: boolean;
   minTicketsPerTransfer: string;
   enableTransferAcceptanceAuthorization: boolean;
@@ -15,6 +16,7 @@ export interface UpdateUserSettingsInput {
   enableWalletForTicketTransfers?: boolean;
   enableTransferFeeInterruption?: boolean;
   transferFeePerTicket?: string;
+  transferFeeCurrency?: string;
   enableMinTicketsInterruption?: boolean;
   minTicketsPerTransfer?: string;
   enableTransferAcceptanceAuthorization?: boolean;

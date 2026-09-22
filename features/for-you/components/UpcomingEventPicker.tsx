@@ -7,6 +7,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
 import { useKeyboardAwareInputFocus } from '@/components/ui/KeyboardAwareScrollView';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { getMyEventsRequest } from '@/services/events/events.api';
 import type { MyEventSummary } from '@/services/events/types';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -105,27 +112,27 @@ export function UpcomingEventPicker({
         style={{
           minHeight: 44,
           borderWidth: 1,
-          borderColor: colors.neutral[300],
+          borderColor: APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_CARD_BG,
           paddingHorizontal: spacing.md,
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.sm,
         }}
       >
-        <Search size={16} color={colors.neutral[500]} />
+        <Search size={16} color={APP_DARK_MUTED} />
         <TextInput
           value={displayValue}
           onChangeText={handleQueryChange}
           onFocus={handleKeyboardAwareFocus}
           placeholder="Search by event name or venue"
-          placeholderTextColor={colors.neutral[400]}
+          placeholderTextColor={APP_DARK_MUTED}
           autoCapitalize="none"
           autoCorrect={false}
           style={{
             flex: 1,
-            color: colors.neutral[800],
+            color: colors.white,
             fontSize: 14,
             paddingVertical: 10,
           }}
@@ -142,16 +149,16 @@ export function UpcomingEventPicker({
               borderRadius: radius.full,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: colors.neutral[100],
+              backgroundColor: APP_DARK_BG,
             }}
           >
-            <X size={12} color={colors.neutral[600]} />
+            <X size={12} color={APP_DARK_MUTED} />
           </Pressable>
         ) : null}
       </View>
 
       {selectedEvent && collapsedAfterSelect ? (
-        <Typography style={{ color: colors.neutral[500], fontSize: 12, marginTop: spacing.xs }}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: spacing.xs }}>
           {selectedEvent.venue}
           {selectedEvent.eventDate ? ` · ${formatEventDate(selectedEvent.eventDate)}` : ''}
         </Typography>
@@ -165,9 +172,9 @@ export function UpcomingEventPicker({
           style={{
             marginTop: spacing.sm,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             borderRadius: radius.lg,
-            backgroundColor: colors.white,
+            backgroundColor: APP_CARD_BG,
             maxHeight: 320,
             overflow: 'hidden',
           }}
@@ -181,7 +188,7 @@ export function UpcomingEventPicker({
           >
             {searchQuery.isFetching ? (
               <View style={{ padding: spacing.md, alignItems: 'center' }}>
-                <Typography style={{ color: colors.neutral[500], fontSize: 13 }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }}>
                   Searching your events…
                 </Typography>
               </View>
@@ -189,17 +196,17 @@ export function UpcomingEventPicker({
               <View
                 style={{
                   borderWidth: 1,
-                  borderColor: colors.neutral[200],
+                  borderColor: APP_DARK_SURFACE,
                   borderRadius: radius.md,
-                  backgroundColor: colors.neutral[50],
+                  backgroundColor: APP_INPUT_BG,
                   padding: spacing.md,
                   gap: spacing.sm,
                 }}
               >
-                <Typography style={{ color: colors.neutral[900], fontSize: 14, fontWeight: '700' }}>
+                <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '700' }}>
                   No results
                 </Typography>
-                <Typography style={{ color: colors.neutral[600], fontSize: 13, lineHeight: 18 }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 18 }}>
                   No upcoming events matched “{debouncedQuery}”. Create an event first so you can
                   generate and send a confirmation email.
                 </Typography>
@@ -229,9 +236,9 @@ export function UpcomingEventPicker({
                     key={event.id}
                     style={{
                       borderWidth: 1,
-                      borderColor: isSelected ? colors.pulse[300] : colors.neutral[200],
+                      borderColor: isSelected ? colors.pulse[300] : APP_DARK_SURFACE,
                       borderRadius: radius.md,
-                      backgroundColor: isSelected ? colors.pulse[50] : colors.neutral[50],
+                      backgroundColor: isSelected ? APP_DARK_SURFACE : APP_INPUT_BG,
                       paddingHorizontal: spacing.sm,
                       paddingVertical: spacing.xs + 2,
                       flexDirection: 'row',
@@ -246,22 +253,16 @@ export function UpcomingEventPicker({
                     />
                     <View style={{ flex: 1, gap: 2 }}>
                       <Typography
-                        style={{ color: colors.neutral[900], fontSize: 13, fontWeight: '700' }}
+                        style={{ color: colors.white, fontSize: 13, fontWeight: '700' }}
                         numberOfLines={1}
                       >
                         {event.name}
                       </Typography>
-                      <Typography
-                        style={{ color: colors.neutral[600], fontSize: 12 }}
-                        numberOfLines={1}
-                      >
+                      <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }} numberOfLines={1}>
                         {formatEventDate(event.eventDate)}
                         {event.eventTime ? ` · ${event.eventTime}` : ''}
                       </Typography>
-                      <Typography
-                        style={{ color: colors.neutral[500], fontSize: 12 }}
-                        numberOfLines={1}
-                      >
+                      <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }} numberOfLines={1}>
                         {event.venue}
                       </Typography>
                     </View>
@@ -273,15 +274,15 @@ export function UpcomingEventPicker({
                         height: 32,
                         borderRadius: radius.sm,
                         borderWidth: 1,
-                        borderColor: isSelected ? colors.pulse[400] : colors.neutral[300],
-                        backgroundColor: isSelected ? colors.pulse[600] : colors.neutral[100],
+                        borderColor: isSelected ? colors.pulse[400] : APP_DARK_SURFACE,
+                        backgroundColor: isSelected ? colors.pulse[600] : APP_DARK_BG,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
                       <Typography
                         style={{
-                          color: isSelected ? colors.white : colors.neutral[600],
+                          color: isSelected ? colors.white : APP_DARK_MUTED,
                           fontSize: 12,
                           fontWeight: '700',
                         }}

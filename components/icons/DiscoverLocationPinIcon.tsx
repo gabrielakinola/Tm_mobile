@@ -1,50 +1,30 @@
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
+import { APP_LOCATION_PIN } from '@/constants/app-surface';
 
-const LOCATION_PIN_TOP_Y = 1.5;
-const LOCATION_PIN_BODY_HEIGHT = 10 * 1.5;
-const LOCATION_PIN_SHOULDER_Y = LOCATION_PIN_TOP_Y + LOCATION_PIN_BODY_HEIGHT;
-const LOCATION_PIN_POINT_HEIGHT = (22.5 - 11.5) * 0.75;
-const LOCATION_PIN_POINT_Y = LOCATION_PIN_SHOULDER_Y + LOCATION_PIN_POINT_HEIGHT;
-const LOCATION_PIN_CENTER_X = 7;
-const LOCATION_PIN_CIRCLE_CY = LOCATION_PIN_TOP_Y + LOCATION_PIN_BODY_HEIGHT / 2;
+const VIEWBOX_WIDTH = 14;
+const VIEWBOX_HEIGHT = 18;
 
-const LOCATION_PIN_VIEWBOX = {
-  x: -2,
-  y: 0,
-  width: 18,
-  height: 26,
-};
-
-export interface DiscoverLocationPinIconProps {
+export interface LocationPinIconProps {
   color?: string;
   size?: number;
-  strokeWidth?: number;
 }
 
-export function DiscoverLocationPinIcon({
-  color = '#FFFFFF',
-  size = 20,
-  strokeWidth = 2.75,
-}: DiscoverLocationPinIconProps) {
-  const svgStrokeWidth = strokeWidth * (LOCATION_PIN_VIEWBOX.width / size);
+/** Filled Ticketmaster location pin: shield body with a circular knockout. */
+export function LocationPinIcon({ color = APP_LOCATION_PIN, size = 16 }: LocationPinIconProps) {
+  const width = Math.round((size * VIEWBOX_WIDTH) / VIEWBOX_HEIGHT);
 
   return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox={`${LOCATION_PIN_VIEWBOX.x} ${LOCATION_PIN_VIEWBOX.y} ${LOCATION_PIN_VIEWBOX.width} ${LOCATION_PIN_VIEWBOX.height}`}
-      fill="none"
-      preserveAspectRatio="xMidYMid meet"
-    >
+    <Svg width={width} height={size} viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} fill="none">
       <Path
-        d={`M -1 ${LOCATION_PIN_TOP_Y} H 15 L 15 ${LOCATION_PIN_SHOULDER_Y} L ${LOCATION_PIN_CENTER_X} ${LOCATION_PIN_POINT_Y} L -1 ${LOCATION_PIN_SHOULDER_Y} Z`}
-        stroke={color}
-        strokeWidth={svgStrokeWidth}
-        strokeLinejoin="miter"
-        strokeMiterlimit={10}
-        fill="none"
+        fill={color}
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1 0h12v10.15L7 17.6 1 10.15V0Zm6 3.05a2.45 2.45 0 1 0 0 4.9 2.45 2.45 0 0 0 0-4.9Z"
       />
-      <Circle cx={LOCATION_PIN_CENTER_X} cy={LOCATION_PIN_CIRCLE_CY} r={3} fill={color} />
     </Svg>
   );
 }
+
+/** @deprecated Use LocationPinIcon */
+export const DiscoverLocationPinIcon = LocationPinIcon;
+export type DiscoverLocationPinIconProps = LocationPinIconProps;

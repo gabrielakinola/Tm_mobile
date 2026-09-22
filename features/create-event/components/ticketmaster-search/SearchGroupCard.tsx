@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import Animated, { Easing, FadeInUp } from 'react-native-reanimated';
 import { Typography } from '@/components/ui';
+import { APP_CARD_BG, APP_DARK_MUTED, APP_DARK_SURFACE } from '@/constants/app-surface';
 import type { TicketmasterSearchGroup } from '@/services/ticketmaster/types';
 import { colors, radius, shadows, spacing } from '@/theme/tokens';
 import { SearchShowRow } from './SearchShowRow';
@@ -25,19 +26,19 @@ export function SearchGroupCard({
         .easing(Easing.out(Easing.cubic))}
       style={{
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         borderRadius: radius.lg,
-        backgroundColor: colors.white,
+        backgroundColor: APP_CARD_BG,
         padding: spacing.md,
         gap: spacing.sm,
         ...shadows.sm,
       }}
     >
       <View style={{ gap: 2 }}>
-        <Typography style={{ color: colors.neutral[900], fontSize: 15, fontWeight: '700' }}>
+        <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>
           {group.title}
         </Typography>
-        <Typography style={{ color: colors.neutral[500], fontSize: 12, fontWeight: '600' }}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
           {group.totalShows} {group.totalShows === 1 ? 'Show' : 'Shows'}
         </Typography>
       </View>
@@ -45,7 +46,7 @@ export function SearchGroupCard({
       <View
         style={{
           height: 1,
-          backgroundColor: colors.neutral[200],
+          backgroundColor: APP_DARK_SURFACE,
           marginVertical: 2,
         }}
       />

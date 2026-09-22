@@ -8,6 +8,8 @@ export interface DisplayProfile {
   city: string;
   mobileLast4: string;
   country: ProfileCountry;
+  preferredCategoryIds: string[];
+  preferredGenreIds: string[];
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
@@ -20,6 +22,8 @@ export interface CreateProfileInput {
   city?: string;
   mobileLast4?: string;
   country: ProfileCountry;
+  preferredCategoryIds?: string[];
+  preferredGenreIds?: string[];
   isDefault?: boolean;
 }
 
@@ -30,5 +34,7 @@ export interface UpdateProfileInput {
   city?: string;
   mobileLast4?: string;
   country?: ProfileCountry;
+  preferredCategoryIds?: string[];
+  preferredGenreIds?: string[];
   isDefault?: boolean;
 }

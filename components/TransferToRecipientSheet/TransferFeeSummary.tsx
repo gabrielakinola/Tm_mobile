@@ -4,8 +4,8 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import type { TransferRecipientFormValues } from '@/components/TransferToRecipientSheet/TransferRecipientForm';
 import { Typography } from '@/components/ui/Typography';
 import {
+  formatTransferFeeAmount,
   formatTransferSeatLine,
-  formatUsdAmount,
   parseTransferFeeAmount,
 } from '@/features/transfers/utils/transfer-fee.util';
 import type { EventTicket, TicketMode } from '@/services/events/types';
@@ -24,6 +24,7 @@ export interface TransferFeeSummaryProps {
   ticketMode: TicketMode;
   recipient: TransferRecipientFormValues;
   transferFeePerTicket: string;
+  transferFeeCurrency: string;
 }
 
 function formatEventDate(value: string): string {
@@ -59,6 +60,7 @@ export const TransferFeeSummary = memo(function TransferFeeSummary({
   ticketMode,
   recipient,
   transferFeePerTicket,
+  transferFeeCurrency,
 }: TransferFeeSummaryProps) {
   const feePerTicket = parseTransferFeeAmount(transferFeePerTicket);
   const total = feePerTicket * tickets.length;
@@ -100,10 +102,17 @@ export const TransferFeeSummary = memo(function TransferFeeSummary({
       </SummarySection>
 
       <View style={styles.feeBlock}>
-        <SummaryLabelValueRow label="Fee (per ticket)" value={formatUsdAmount(feePerTicket)} />
+        <SummaryLabelValueRow
+          label="Fee (per ticket)"
+          value={formatTransferFeeAmount(feePerTicket, transferFeeCurrency)}
+        />
         <SummaryLabelValueRow label="Quantity" value={`x${tickets.length}`} />
         <View style={styles.feeDivider} />
-        <SummaryLabelValueRow label="Total Fee" value={formatUsdAmount(total)} emphasis />
+        <SummaryLabelValueRow
+          label="Total Fee"
+          value={formatTransferFeeAmount(total, transferFeeCurrency)}
+          emphasis
+        />
       </View>
     </BottomSheetScrollView>
   );

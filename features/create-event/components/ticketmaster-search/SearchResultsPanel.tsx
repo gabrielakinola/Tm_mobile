@@ -1,8 +1,9 @@
 import { memo } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { APP_CARD_BG, APP_DARK_SURFACE } from '@/constants/app-surface';
 import type { TicketmasterSearchGroup } from '@/services/ticketmaster/types';
-import { colors, radius, spacing } from '@/theme/tokens';
+import { radius, spacing } from '@/theme/tokens';
 import { SearchEmptyState } from './SearchEmptyState';
 import { SearchGroupCard } from './SearchGroupCard';
 import { SearchSkeleton } from './SearchSkeleton';
@@ -36,9 +37,9 @@ export const SearchResultsPanel = memo(function SearchResultsPanel({
       style={{
         marginTop: spacing.sm,
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         borderRadius: radius.lg,
-        backgroundColor: colors.white,
+        backgroundColor: APP_CARD_BG,
         maxHeight: 380,
         overflow: 'hidden',
       }}

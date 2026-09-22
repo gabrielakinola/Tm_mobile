@@ -1,5 +1,11 @@
 import { Pressable, View } from 'react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import type { TicketmasterShow } from '@/services/ticketmaster/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -62,9 +68,9 @@ export function SearchShowRow({ show, onSelect, isLoading }: SearchShowRowProps)
     <View
       style={{
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         borderRadius: radius.md,
-        backgroundColor: colors.neutral[50],
+        backgroundColor: APP_INPUT_BG,
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs + 2,
         flexDirection: 'row',
@@ -75,7 +81,7 @@ export function SearchShowRow({ show, onSelect, isLoading }: SearchShowRowProps)
     >
       <View style={{ flex: 1, gap: 3 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          <Typography style={{ color: colors.neutral[900], fontSize: 12, fontWeight: '700' }}>
+          <Typography style={{ color: colors.white, fontSize: 12, fontWeight: '700' }}>
             {formatDate(show.date)}
           </Typography>
           <View
@@ -83,14 +89,14 @@ export function SearchShowRow({ show, onSelect, isLoading }: SearchShowRowProps)
               width: 4,
               height: 4,
               borderRadius: radius.full,
-              backgroundColor: colors.neutral[500],
+              backgroundColor: APP_DARK_MUTED,
             }}
           />
-          <Typography style={{ color: colors.neutral[900], fontSize: 12, fontWeight: '700' }}>
+          <Typography style={{ color: colors.white, fontSize: 12, fontWeight: '700' }}>
             {formatTime(show.time)}
           </Typography>
         </View>
-        <Typography style={{ color: colors.neutral[600], fontSize: 12 }} numberOfLines={1}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }} numberOfLines={1}>
           {venueLine}
         </Typography>
       </View>
@@ -104,14 +110,14 @@ export function SearchShowRow({ show, onSelect, isLoading }: SearchShowRowProps)
           height: 32,
           borderRadius: radius.sm,
           borderWidth: 1,
-          borderColor: colors.neutral[300],
-          backgroundColor: colors.neutral[100],
+          borderColor: APP_DARK_SURFACE,
+          backgroundColor: APP_DARK_BG,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: isLoading ? 0.7 : 1,
         }}
       >
-        <Typography style={{ color: colors.neutral[600], fontSize: 12, fontWeight: '700' }}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '700' }}>
           {isLoading ? 'Loading...' : 'Select'}
         </Typography>
       </Pressable>

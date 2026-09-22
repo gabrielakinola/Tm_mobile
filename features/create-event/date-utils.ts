@@ -14,6 +14,21 @@ export function formatEventDateFromIso(value: string): string {
   return parsed ? formatEventDateDisplay(parsed) : value;
 }
 
+const MONTH_INDEX: Record<string, number> = {
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11,
+};
+
 export function parseEventDateValue(value: string): Date | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -22,6 +37,19 @@ export function parseEventDateValue(value: string): Date | null {
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
     const date = new Date(`${trimmed}T12:00:00`);
     return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  // "Fri, Aug 21, 2026" | "Aug 21, 2026" | "Friday, August 21, 2026"
+  const namedMatch = trimmed.match(
+    /^(?:[A-Za-z]{3,9},?\s+)?([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})$/,
+  );
+  if (namedMatch) {
+    const month = MONTH_INDEX[namedMatch[1].slice(0, 3).toLowerCase()];
+    const day = Number(namedMatch[2]);
+    const year = Number(namedMatch[3]);
+    if (month !== undefined && Number.isFinite(day) && Number.isFinite(year)) {
+      return new Date(year, month, day, 12, 0, 0);
+    }
   }
 
   // Display format / other parseable strings
@@ -51,6 +79,10 @@ export function startOfMonth(date: Date): Date {
 
 export function addMonths(date: Date, amount: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1, 12, 0, 0);
+}
+
+export function addDays(date: Date, amount: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount, 12, 0, 0);
 }
 
 export function getCalendarCells(month: Date): (Date | null)[] {

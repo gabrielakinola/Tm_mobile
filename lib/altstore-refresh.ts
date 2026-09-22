@@ -1,10 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { getDeviceInfo } from '@/lib/device-info';
 import type { SubscriptionDaysLeftTone } from '@/lib/subscription';
-import {
-  getAltStoreRefreshStatusRequest,
-  markAltStoreRefreshedRequest,
-} from '@/services/altstore/altstore.api';
+import { getAltStoreRefreshStatusRequest } from '@/services/altstore/altstore.api';
 
 export const ALTSTORE_REFRESH_CYCLE_DAYS = 7;
 export const ALTSTORE_REFRESH_EXPIRES_AT_KEY = 'altstore_refresh_expires_at';
@@ -40,22 +37,6 @@ export async function syncAltStoreRefreshExpiresAt(): Promise<string | null> {
     return local;
   } catch {
     return local;
-  }
-}
-
-export async function markAltStoreRefreshed(now = new Date()): Promise<string> {
-  const device = await getDeviceInfo();
-  const localExpiresAt = new Date(
-    now.getTime() + ALTSTORE_REFRESH_CYCLE_DAYS * DAY_MS,
-  ).toISOString();
-
-  try {
-    const remote = await markAltStoreRefreshedRequest(device);
-    const expiresAt = remote.expiresAt ?? localExpiresAt;
-    await setAltStoreRefreshExpiresAtLocal(expiresAt);
-    return expiresAt;
-  } catch {
-    throw new Error('Could not sync AltStore refresh with the server.');
   }
 }
 

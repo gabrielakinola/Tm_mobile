@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { Typography } from '@/components/ui';
+import { APP_CARD_BG, APP_DARK_MUTED, APP_DARK_SURFACE } from '@/constants/app-surface';
 import type { EventListStatus } from '@/services/events/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -46,15 +47,15 @@ export function ManageEventsTabs({
               borderRadius: radius.full,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: active ? colors.pulse[600] : colors.neutral[100],
+              backgroundColor: active ? colors.pulse[600] : APP_CARD_BG,
               borderWidth: 1,
-              borderColor: active ? colors.pulse[600] : colors.neutral[200],
+              borderColor: active ? colors.pulse[600] : APP_DARK_SURFACE,
               paddingHorizontal: spacing.sm,
             }}
           >
             <Typography
               style={{
-                color: active ? colors.white : colors.neutral[700],
+                color: active ? colors.white : APP_DARK_MUTED,
                 fontSize: 12,
                 fontWeight: '700',
               }}

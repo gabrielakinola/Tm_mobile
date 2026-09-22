@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, View, type ViewStyle } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import { Typography } from '@/components/ui/Typography';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 export interface DropdownOption {
@@ -34,7 +41,7 @@ export function DropdownMenu({
   return (
     <View style={[{ gap: spacing.xs }, style]}>
       {label ? (
-        <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+        <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
           {label}
         </Typography>
       ) : null}
@@ -45,9 +52,9 @@ export function DropdownMenu({
         style={{
           minHeight: 42,
           borderWidth: 1,
-          borderColor: colors.neutral[300],
+          borderColor: APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_INPUT_BG,
           paddingHorizontal: spacing.md,
           flexDirection: 'row',
           alignItems: 'center',
@@ -56,7 +63,7 @@ export function DropdownMenu({
       >
         <Typography
           style={{
-            color: selected ? colors.neutral[800] : colors.neutral[400],
+            color: selected ? colors.white : APP_DARK_MUTED,
             fontSize: 14,
             flex: 1,
           }}
@@ -64,11 +71,11 @@ export function DropdownMenu({
         >
           {selected?.label ?? placeholder}
         </Typography>
-        <ChevronDown size={18} color={colors.neutral[500]} />
+        <ChevronDown size={18} color={APP_DARK_MUTED} />
       </Pressable>
 
       {hint ? (
-        <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>{hint}</Typography>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>{hint}</Typography>
       ) : null}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -83,7 +90,7 @@ export function DropdownMenu({
           <Pressable
             onPress={(event) => event.stopPropagation()}
             style={{
-              backgroundColor: colors.neutral[0],
+              backgroundColor: APP_CARD_BG,
               borderTopLeftRadius: radius.xl,
               borderTopRightRadius: radius.xl,
               paddingTop: spacing.md,
@@ -96,7 +103,7 @@ export function DropdownMenu({
                 width: 40,
                 height: 4,
                 borderRadius: radius.full,
-                backgroundColor: colors.neutral[300],
+                backgroundColor: APP_DARK_SURFACE,
                 alignSelf: 'center',
                 marginBottom: spacing.md,
               }}
@@ -104,7 +111,7 @@ export function DropdownMenu({
             {label ? (
               <Typography
                 style={{
-                  color: colors.neutral[900],
+                  color: colors.white,
                   fontSize: 16,
                   fontWeight: '700',
                   paddingHorizontal: spacing.lg,
@@ -127,14 +134,14 @@ export function DropdownMenu({
                     style={{
                       paddingHorizontal: spacing.lg,
                       paddingVertical: spacing.md,
-                      backgroundColor: isSelected ? colors.pulse[50] : colors.neutral[0],
+                      backgroundColor: isSelected ? APP_DARK_SURFACE : APP_INPUT_BG,
                       borderBottomWidth: 1,
-                      borderBottomColor: colors.neutral[100],
+                      borderBottomColor: APP_DARK_BG,
                     }}
                   >
                     <Typography
                       style={{
-                        color: isSelected ? colors.pulse[600] : colors.neutral[800],
+                        color: isSelected ? colors.pulse[600] : colors.white,
                         fontSize: 15,
                         fontWeight: isSelected ? '700' : '500',
                       }}

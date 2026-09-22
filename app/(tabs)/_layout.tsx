@@ -1,36 +1,29 @@
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Tabs, useSegments } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
-  DiscoverTabIcon,
-  ForYouTabIcon,
+  HomeTabIcon,
   MyAccountTabIcon,
   MyTicketsTabIcon,
-  SellTabIcon,
+  WatchlistTabIcon,
 } from '@/components/navigation/TabBarIcons';
 import { SCREEN_HEADER_BG } from '@/constants/screen-header';
 import { TAB_BAR_COLORS } from '@/constants/tab-bar';
 import { useAccountStore } from '@/stores/account-store';
 
-const TAB_BAR_CONTENT_HEIGHT = Platform.OS === 'ios' ? 49 : 56;
-const LIGHT_STATUS_BAR_TABS = new Set(['discover', 'tickets', 'account', 'for-you', 'sell']);
+const TAB_BAR_CONTENT_HEIGHT = Platform.OS === 'ios' ? 54 : 62;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  const segments = useSegments();
-  const activeTab = segments[segments.length - 1] ?? '';
-  const useLightStatusBar = LIGHT_STATUS_BAR_TABS.has(activeTab);
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 0 : 8);
   const notificationCount = useAccountStore((state) => state.notificationCount);
 
   return (
     <>
-      <StatusBar
-        style={useLightStatusBar ? 'light' : 'dark'}
-        backgroundColor={useLightStatusBar ? SCREEN_HEADER_BG : undefined}
-      />
+      <StatusBar style="light" backgroundColor={SCREEN_HEADER_BG} />
       <Tabs
+        initialRouteName="home"
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: TAB_BAR_COLORS.active,
@@ -75,31 +68,30 @@ export default function TabLayout() {
         }}
       >
         <Tabs.Screen
-          name="discover"
+          name="home"
           options={{
-            title: 'Discover',
-            tabBarIcon: ({ color }) => <DiscoverTabIcon color={color} />,
+            title: 'Home',
+            tabBarIcon: ({ focused }) => (
+              <HomeTabIcon color="#FFFFFF" focused={focused} size={32} />
+            ),
           }}
         />
         <Tabs.Screen
           name="for-you"
           options={{
-            title: 'For You',
-            tabBarIcon: ({ color }) => <ForYouTabIcon color={color} />,
+            title: 'Watchlist',
+            tabBarIcon: ({ color, focused }) => (
+              <WatchlistTabIcon color={color} focused={focused} size={30} />
+            ),
           }}
         />
         <Tabs.Screen
           name="tickets"
           options={{
             title: 'My Tickets',
-            tabBarIcon: ({ color }) => <MyTicketsTabIcon color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="sell"
-          options={{
-            title: 'Sell',
-            tabBarIcon: ({ color }) => <SellTabIcon color={color} />,
+            tabBarIcon: ({ focused }) => (
+              <MyTicketsTabIcon color="#FFFFFF" focused={focused} size={30} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -108,7 +100,7 @@ export default function TabLayout() {
             title: 'Account',
             tabBarIcon: ({ color, focused }) => (
               <View>
-                <MyAccountTabIcon color={color} />
+                <MyAccountTabIcon color={color} focused={focused} size={30} />
                 {focused && notificationCount > 0 ? (
                   <View
                     style={{
@@ -131,6 +123,18 @@ export default function TabLayout() {
                 ) : null}
               </View>
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="discover"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="sell"
+          options={{
+            href: null,
           }}
         />
         <Tabs.Screen

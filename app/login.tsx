@@ -13,6 +13,12 @@ import {
   useToast,
 } from '@/components/ui';
 import { API_BASE_URL } from '@/constants/app';
+import {
+  APP_CARD_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { ActiveSessionConflictModal } from '@/features/auth/components/ActiveSessionConflictModal';
 import { DeviceChangeLimitModal } from '@/features/auth/components/DeviceChangeLimitModal';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas/login.schema';
@@ -34,7 +40,6 @@ import {
   getFlutterwavePaymentStatusRequest,
   initiateSubscriptionPaymentRequest,
 } from '@/services/payments/payments.api';
-import { useTheme } from '@/theme';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 const API_URL_BANNER_MS = 8000;
@@ -59,7 +64,6 @@ async function waitForPaymentVerification(txRef: string): Promise<boolean> {
 }
 
 export default function LoginScreen() {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { show: showToast } = useToast();
   const loginMutation = useLogin();
@@ -301,28 +305,28 @@ export default function LoginScreen() {
 
           <View
             style={{
-              backgroundColor: colors.neutral[0],
+              backgroundColor: APP_CARD_BG,
               borderRadius: radius['2xl'],
               padding: spacing.xl,
               gap: spacing.lg,
               borderWidth: 1,
-              borderColor: colors.neutral[200],
+              borderColor: APP_DARK_SURFACE,
             }}
           >
             {showApiUrlBanner ? (
               <View
                 style={{
-                  backgroundColor: colors.neutral[100],
+                  backgroundColor: APP_INPUT_BG,
                   borderRadius: radius.md,
                   paddingHorizontal: spacing.md,
                   paddingVertical: spacing.sm,
                   borderWidth: 1,
-                  borderColor: colors.neutral[200],
+                  borderColor: APP_DARK_SURFACE,
                 }}
               >
                 <Typography
                   variant="caption"
-                  style={{ color: colors.neutral[600], fontSize: 11, lineHeight: 16 }}
+                  style={{ color: APP_DARK_MUTED, fontSize: 11, lineHeight: 16 }}
                 >
                   API: {API_BASE_URL}
                 </Typography>
@@ -330,10 +334,10 @@ export default function LoginScreen() {
             ) : null}
 
             <View style={{ gap: spacing.xs }}>
-              <Typography variant="h3" style={{ color: colors.neutral[900] }}>
+              <Typography variant="h3" style={{ color: colors.white }}>
                 Welcome back
               </Typography>
-              <Typography variant="body" style={{ color: colors.neutral[500] }}>
+              <Typography variant="body" style={{ color: APP_DARK_MUTED }}>
                 Enter your credentials to continue.
               </Typography>
             </View>
@@ -343,9 +347,13 @@ export default function LoginScreen() {
               name="email"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
+                  tone="dark"
                   label="Email"
                   value={value}
-                  onBlur={onBlur}
+                  onBlur={() => {
+                    onChange(value.trim());
+                    onBlur();
+                  }}
                   onChangeText={onChange}
                   error={errors.email?.message}
                   keyboardType="email-address"
@@ -353,7 +361,7 @@ export default function LoginScreen() {
                   autoCorrect={false}
                   textContentType="emailAddress"
                   autoComplete="email"
-                  leftIcon={<Mail size={18} color={theme.colors.mutedForeground} />}
+                  leftIcon={<Mail size={18} color={APP_DARK_MUTED} />}
                 />
               )}
             />
@@ -363,15 +371,19 @@ export default function LoginScreen() {
               name="password"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
+                  tone="dark"
                   label="Password"
                   value={value}
-                  onBlur={onBlur}
+                  onBlur={() => {
+                    onChange(value.trim());
+                    onBlur();
+                  }}
                   onChangeText={onChange}
                   error={errors.password?.message}
                   secureTextEntry={!showPassword}
                   textContentType="password"
                   autoComplete="password"
-                  leftIcon={<Lock size={18} color={theme.colors.mutedForeground} />}
+                  leftIcon={<Lock size={18} color={APP_DARK_MUTED} />}
                   rightIcon={
                     <Pressable
                       accessibilityRole="button"
@@ -380,9 +392,9 @@ export default function LoginScreen() {
                       onPress={() => setShowPassword((current) => !current)}
                     >
                       {showPassword ? (
-                        <EyeOff size={18} color={theme.colors.mutedForeground} />
+                        <EyeOff size={18} color={APP_DARK_MUTED} />
                       ) : (
-                        <Eye size={18} color={theme.colors.mutedForeground} />
+                        <Eye size={18} color={APP_DARK_MUTED} />
                       )}
                     </Pressable>
                   }
@@ -391,7 +403,7 @@ export default function LoginScreen() {
             />
 
             {formError ? (
-              <Typography variant="caption" style={{ color: theme.colors.destructive }}>
+              <Typography variant="caption" style={{ color: colors.error[500] }}>
                 {formError}
               </Typography>
             ) : null}
@@ -425,7 +437,7 @@ export default function LoginScreen() {
                 variant="body"
                 style={{
                   textAlign: 'center',
-                  color: theme.colors.mutedForeground,
+                  color: APP_DARK_MUTED,
                   opacity: 0.7,
                 }}
               >

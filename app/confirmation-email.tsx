@@ -6,6 +6,13 @@ import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { ChevronLeft } from 'lucide-react-native';
 import { Header, KeyboardAwareScrollView, Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { ConfirmationEmailErrorModal } from '@/features/for-you/components/ConfirmationEmailErrorModal';
 import { ConfirmationEmailSuccessModal } from '@/features/for-you/components/ConfirmationEmailSuccessModal';
 import { UpcomingEventPicker } from '@/features/for-you/components/UpcomingEventPicker';
@@ -76,7 +83,7 @@ export default function ConfirmationEmailScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Confirmation email"
         leftAction={
@@ -100,7 +107,7 @@ export default function ConfirmationEmailScreen() {
           gap: spacing.lg,
         }}
       >
-        <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 20 }}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 20 }}>
           Choose an upcoming event to send a Ticketmaster-style confirmation email to your default
           profile email.
         </Typography>
@@ -109,14 +116,14 @@ export default function ConfirmationEmailScreen() {
           style={{
             borderRadius: radius.md,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
-            backgroundColor: colors.neutral[0],
+            borderColor: APP_DARK_SURFACE,
+            backgroundColor: APP_CARD_BG,
             padding: spacing.md,
             gap: spacing.md,
           }}
         >
           <View style={{ gap: spacing.xs }}>
-            <Typography style={{ color: colors.neutral[700], fontWeight: '600', fontSize: 13 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontWeight: '600', fontSize: 13 }}>
               Select Event
             </Typography>
             <UpcomingEventPicker
@@ -127,23 +134,23 @@ export default function ConfirmationEmailScreen() {
           </View>
 
           <View style={{ gap: spacing.xs }}>
-            <Typography style={{ color: colors.neutral[700], fontWeight: '600', fontSize: 13 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontWeight: '600', fontSize: 13 }}>
               Recipient Email
             </Typography>
             <View
               style={{
                 borderWidth: 1,
-                borderColor: colors.neutral[200],
+                borderColor: APP_DARK_SURFACE,
                 borderRadius: radius.sm,
                 minHeight: 40,
                 paddingHorizontal: spacing.md,
                 justifyContent: 'center',
-                backgroundColor: colors.neutral[50],
+                backgroundColor: APP_INPUT_BG,
               }}
             >
               <Typography
                 style={{
-                  color: recipientEmail ? colors.neutral[800] : colors.neutral[400],
+                  color: recipientEmail ? colors.white : APP_DARK_MUTED,
                   fontSize: 14,
                 }}
                 numberOfLines={1}
@@ -151,7 +158,7 @@ export default function ConfirmationEmailScreen() {
                 {recipientEmail || 'No default profile email set'}
               </Typography>
             </View>
-            <Typography style={{ color: colors.neutral[400], fontSize: 12, lineHeight: 16 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, lineHeight: 16 }}>
               Sent to your default profile display email.
             </Typography>
           </View>

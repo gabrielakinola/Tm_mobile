@@ -4,8 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { DropdownMenu, Header, KeyboardAwareScrollView, Typography } from '@/components/ui';
+import { APP_DARK_BG, APP_DARK_MUTED } from '@/constants/app-surface';
 import { FormCard, FormField, SectionLabel } from '@/features/create-event/components/FormFields';
-import { COUNTRY_OPTIONS } from '@/features/profile-location/constants';
+import { ProfileEventPreferences } from '@/features/profile-location/components/ProfileEventPreferences';
+import {
+  COUNTRY_OPTIONS,
+  DEFAULT_PROFILE_CATEGORY_IDS,
+} from '@/features/profile-location/constants';
+import { useTicketmasterPreferenceOptions } from '@/hooks';
 import { useCreateProfile, useProfiles, useUpdateProfile } from '@/hooks/profiles/useProfiles';
 import type { ProfileCountry } from '@/services/profiles/types';
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -22,6 +28,8 @@ export default function ProfileFormScreen() {
   const { data: profiles = [], isLoading } = useProfiles();
   const createMutation = useCreateProfile();
   const updateMutation = useUpdateProfile();
+  const { data: preferenceOptions, isLoading: preferencesLoading } =
+    useTicketmasterPreferenceOptions();
 
   const existing = useMemo(
     () => profiles.find((profile) => profile.id === profileId),
@@ -34,6 +42,10 @@ export default function ProfileFormScreen() {
   const [city, setCity] = useState('');
   const [mobileLast4, setMobileLast4] = useState('');
   const [country, setCountry] = useState<string>('US');
+  const [preferredCategoryIds, setPreferredCategoryIds] = useState<string[]>([
+    ...DEFAULT_PROFILE_CATEGORY_IDS,
+  ]);
+  const [preferredGenreIds, setPreferredGenreIds] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(!isEditing);
 
   useEffect(() => {
@@ -50,6 +62,12 @@ export default function ProfileFormScreen() {
     setCity(existing.city);
     setMobileLast4(existing.mobileLast4 ?? '');
     setCountry(existing.country);
+    setPreferredCategoryIds(
+      existing.preferredCategoryIds?.length
+        ? existing.preferredCategoryIds
+        : [...DEFAULT_PROFILE_CATEGORY_IDS],
+    );
+    setPreferredGenreIds(existing.preferredGenreIds ?? []);
     setHydrated(true);
   }, [existing, isEditing]);
 
@@ -86,6 +104,8 @@ export default function ProfileFormScreen() {
       city: city.trim(),
       mobileLast4: trimmedMobileLast4,
       country: country as ProfileCountry,
+      preferredCategoryIds,
+      preferredGenreIds,
     };
 
     if (isEditing && profileId) {
@@ -99,6 +119,8 @@ export default function ProfileFormScreen() {
             setCity(updated.city);
             setMobileLast4(updated.mobileLast4);
             setCountry(updated.country);
+            setPreferredCategoryIds(updated.preferredCategoryIds);
+            setPreferredGenreIds(updated.preferredGenreIds);
             Alert.alert('Profile updated', 'Your display profile has been saved.', [
               { text: 'OK', onPress: () => router.back() },
             ]);
@@ -119,6 +141,8 @@ export default function ProfileFormScreen() {
         setCity(created.city);
         setMobileLast4(created.mobileLast4);
         setCountry(created.country);
+        setPreferredCategoryIds(created.preferredCategoryIds);
+        setPreferredGenreIds(created.preferredGenreIds);
         Alert.alert('Profile created', 'Your display profile has been added.', [
           { text: 'OK', onPress: () => router.back() },
         ]);
@@ -130,7 +154,7 @@ export default function ProfileFormScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title={isEditing ? 'Edit profile' : 'Add profile'}
         leftAction={
@@ -160,16 +184,14 @@ export default function ProfileFormScreen() {
             gap: spacing.lg,
           }}
         >
-          <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 20 }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 20 }}>
             This profile is for in-app display only (My Account and country flag). It does not
             change your login email or password.
           </Typography>
 
           <FormCard>
             <SectionLabel>Profile name</SectionLabel>
-            <Typography
-              style={{ color: colors.neutral[500], fontSize: 12, marginTop: -spacing.sm }}
-            >
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: -spacing.sm }}>
               The default profile&apos;s first name is shown when you transfer tickets.
             </Typography>
 
@@ -190,10 +212,10 @@ export default function ProfileFormScreen() {
             />
 
             <View style={{ gap: spacing.xs }}>
-              <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                 Display email
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 Shown on My Account. This is separate from the email you use to sign in.
               </Typography>
               <FormField
@@ -207,10 +229,10 @@ export default function ProfileFormScreen() {
             </View>
 
             <View style={{ gap: spacing.xs }}>
-              <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                 Mobile no. last 4 digits
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 Used when authenticating transfers. Leave blank to generate 4 digits.
               </Typography>
               <FormField
@@ -225,10 +247,8 @@ export default function ProfileFormScreen() {
 
           <FormCard>
             <SectionLabel>Location</SectionLabel>
-            <Typography
-              style={{ color: colors.neutral[500], fontSize: 12, marginTop: -spacing.sm }}
-            >
-              The default profile&apos;s country controls the flag in Discover, My Events, and My
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: -spacing.sm }}>
+              The default profile&apos;s country controls the flag in Home, My Events, and My
               Account.
             </Typography>
 
@@ -246,6 +266,36 @@ export default function ProfileFormScreen() {
               options={[...COUNTRY_OPTIONS]}
               onChange={setCountry}
               placeholder="Select country"
+            />
+          </FormCard>
+
+          <FormCard>
+            <SectionLabel>Event preferences</SectionLabel>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: -spacing.sm }}>
+              These choices personalize the For You events shown for this profile.
+            </Typography>
+            <ProfileEventPreferences
+              categories={
+                preferenceOptions?.categories.length
+                  ? preferenceOptions.categories
+                  : [
+                      {
+                        id: DEFAULT_PROFILE_CATEGORY_IDS[0],
+                        name: 'Music',
+                        genres: [],
+                      },
+                      {
+                        id: DEFAULT_PROFILE_CATEGORY_IDS[1],
+                        name: 'Sports',
+                        genres: [],
+                      },
+                    ]
+              }
+              selectedCategoryIds={preferredCategoryIds}
+              selectedGenreIds={preferredGenreIds}
+              onCategoryIdsChange={setPreferredCategoryIds}
+              onGenreIdsChange={setPreferredGenreIds}
+              loading={preferencesLoading}
             />
           </FormCard>
 

@@ -1,6 +1,12 @@
 import { Pressable, Modal as RNModal, View } from 'react-native';
 import { Check, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { hapticLight } from '@/lib/haptics';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -30,7 +36,7 @@ export function SettingsSavedModal({ visible, onClose }: SettingsSavedModalProps
               onPress={handleClose}
               style={styles.closeButton}
             >
-              <X size={18} color={colors.neutral[700]} strokeWidth={2.2} />
+              <X size={18} color={APP_DARK_MUTED} strokeWidth={2.2} />
             </Pressable>
           </View>
 
@@ -56,10 +62,10 @@ const styles = {
     padding: spacing.lg,
   },
   card: {
-    backgroundColor: colors.neutral[0],
+    backgroundColor: APP_CARD_BG,
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: APP_DARK_SURFACE,
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -82,19 +88,19 @@ const styles = {
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.neutral[100],
+    backgroundColor: APP_DARK_BG,
   },
   copy: {
     gap: spacing.sm,
   },
   title: {
-    color: colors.neutral[950],
+    color: colors.white,
     fontSize: 22,
     fontWeight: '700',
     lineHeight: 28,
   },
   message: {
-    color: colors.neutral[600],
+    color: APP_DARK_MUTED,
     fontSize: 15,
     lineHeight: 22,
   },

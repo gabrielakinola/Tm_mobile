@@ -1,6 +1,12 @@
 import { Pressable, Modal as RNModal, View } from 'react-native';
 import { ShieldAlert, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { hapticLight } from '@/lib/haptics';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -29,11 +35,11 @@ export function DeviceChangeLimitModal({ visible, message, onClose }: DeviceChan
       >
         <Pressable
           style={{
-            backgroundColor: colors.neutral[0],
+            backgroundColor: APP_CARD_BG,
             borderRadius: radius.xl,
             padding: spacing.xl,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             gap: spacing.lg,
           }}
           onPress={(event) => event.stopPropagation()}
@@ -68,17 +74,17 @@ export function DeviceChangeLimitModal({ visible, message, onClose }: DeviceChan
                 borderRadius: radius.full,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: colors.neutral[100],
+                backgroundColor: APP_DARK_BG,
               }}
             >
-              <X size={18} color={colors.neutral[700]} strokeWidth={2.2} />
+              <X size={18} color={APP_DARK_MUTED} strokeWidth={2.2} />
             </Pressable>
           </View>
 
           <View style={{ gap: spacing.sm }}>
             <Typography
               style={{
-                color: colors.neutral[950],
+                color: colors.white,
                 fontSize: 22,
                 fontWeight: '700',
                 lineHeight: 28,
@@ -86,7 +92,7 @@ export function DeviceChangeLimitModal({ visible, message, onClose }: DeviceChan
             >
               Device change unavailable
             </Typography>
-            <Typography style={{ color: colors.neutral[600], fontSize: 15, lineHeight: 22 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 15, lineHeight: 22 }}>
               {message?.trim() ||
                 'You have already changed devices once during this subscription period. You can switch devices again after your next subscription renewal.'}
             </Typography>
@@ -100,7 +106,7 @@ export function DeviceChangeLimitModal({ visible, message, onClose }: DeviceChan
               borderRadius: radius.lg,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: colors.neutral[900],
+              backgroundColor: colors.pulse[600],
             }}
           >
             <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>

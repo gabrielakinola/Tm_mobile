@@ -15,12 +15,20 @@ export interface ChangePasswordInput {
 export type LoginInput = LoginCredentials & DeviceInfo;
 
 export async function loginRequest(input: LoginInput): Promise<LoginResponse> {
-  const response = await apiClient.post<LoginResponse>('/auth/login', input);
+  const response = await apiClient.post<LoginResponse>('/auth/login', {
+    ...input,
+    email: input.email.trim(),
+    password: input.password.trim(),
+  });
   return response.data;
 }
 
 export async function forceLoginRequest(input: LoginInput): Promise<LoginResponse> {
-  const response = await apiClient.post<LoginResponse>('/auth/login/force', input);
+  const response = await apiClient.post<LoginResponse>('/auth/login/force', {
+    ...input,
+    email: input.email.trim(),
+    password: input.password.trim(),
+  });
   return response.data;
 }
 

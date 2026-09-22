@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
 import { Typography } from '@/components/ui';
+import { APP_DARK_BG, APP_DARK_MUTED, APP_DARK_SURFACE } from '@/constants/app-surface';
 import { colors, radius } from '@/theme/tokens';
 
 const ITEM_HEIGHT = 44;
@@ -61,7 +62,7 @@ export function TimePickerWheelColumn<T extends string | number>({
       >
         <Typography
           style={{
-            color: selected ? colors.neutral[950] : colors.neutral[400],
+            color: selected ? colors.white : APP_DARK_MUTED,
             fontSize: selected ? 20 : 18,
             fontWeight: selected ? '700' : '500',
           }}
@@ -83,9 +84,9 @@ export function TimePickerWheelColumn<T extends string | number>({
           top: PADDING_ROWS * ITEM_HEIGHT,
           height: ITEM_HEIGHT,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[100],
+          backgroundColor: APP_DARK_BG,
           borderWidth: 1,
-          borderColor: colors.neutral[200],
+          borderColor: APP_DARK_SURFACE,
           zIndex: 1,
         }}
       />

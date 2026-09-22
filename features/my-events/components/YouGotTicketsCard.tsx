@@ -19,7 +19,8 @@ const MINI_DATE_FONT_SIZE = 14;
 const MINI_DATE_DOT_FONT_SIZE = getScaledEventDateBadgeDotFontSize(MINI_DATE_FONT_SIZE);
 const VENUE_COLOR = '#C8C8C8';
 const VENUE_FONT_SIZE = 11;
-const SOCIAL_BG = '#F0F0F0';
+const SOCIAL_BG = '#242424';
+const SOCIAL_BODY = '#8A8A8A';
 
 export interface YouGotTicketsCardProps {
   event: Pick<
@@ -140,7 +141,7 @@ export function YouGotTicketsCard({ event, onSharePress }: YouGotTicketsCardProp
             <Typography numberOfLines={1} style={styles.shareLabel}>
               Share You’re Going
             </Typography>
-            <Share size={13} color={colors.neutral[800]} strokeWidth={2.2} />
+            <Share size={13} color={colors.white} strokeWidth={2.2} />
           </View>
         </Pressable>
       </View>
@@ -232,13 +233,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   socialTitle: {
-    color: colors.neutral[950],
+    color: colors.white,
     fontSize: 15,
     lineHeight: 18,
     fontWeight: '800',
   },
   socialBody: {
-    color: colors.neutral[700],
+    color: SOCIAL_BODY,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '400',
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     opacity: 0.65,
   },
   shareLabel: {
-    color: colors.neutral[900],
+    color: colors.white,
     fontSize: 13,
     lineHeight: 16,
     fontWeight: '700',

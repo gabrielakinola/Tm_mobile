@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Minus, Plus } from 'lucide-react-native';
 import { Typography, useToast } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { openFlutterwaveCheckout } from '@/lib/flutterwave-checkout';
 import { formatNaira } from '@/lib/format-currency';
 import { hapticLight } from '@/lib/haptics';
@@ -67,7 +74,7 @@ interface WalletPassSectionProps {
 
 export function WalletLifetimeExplanation() {
   return (
-    <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 20 }}>
+    <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 20 }}>
       {WALLET_ACCEPTANCE_EXPLANATION} Your lifetime account includes unlimited wallet passes at no
       extra cost.
     </Typography>
@@ -173,11 +180,11 @@ export function WalletPassSection({
 
   return (
     <View style={{ gap: spacing.md }}>
-      <Typography style={{ color: colors.neutral[800], fontSize: 15, fontWeight: '700' }}>
+      <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>
         Buy Wallet (Apple / Google)
       </Typography>
 
-      <Typography style={{ color: colors.neutral[500], fontSize: 13, lineHeight: 20 }}>
+      <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 20 }}>
         {WALLET_ACCEPTANCE_EXPLANATION} Each transfer uses 1 pass (
         {formatNaira(WALLET_PASS_PRICE_NGN)}
         ), regardless of how many tickets you send, after your {WALLET_TRIAL_DAYS}-day free trial.
@@ -188,19 +195,19 @@ export function WalletPassSection({
           style={{
             borderRadius: radius.md,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
-            backgroundColor: colors.neutral[50],
+            borderColor: APP_DARK_SURFACE,
+            backgroundColor: APP_INPUT_BG,
             paddingHorizontal: spacing.md,
             paddingVertical: spacing.sm + 2,
             gap: spacing.xs,
           }}
         >
-          <Typography style={{ color: colors.neutral[600], fontSize: 12, fontWeight: '600' }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
             Wallet Pass trial ends in
           </Typography>
           <Typography
             style={{
-              color: colors.pulse[700],
+              color: colors.pulse[300],
               fontSize: 20,
               fontWeight: '700',
               fontVariant: ['tabular-nums'],
@@ -215,9 +222,9 @@ export function WalletPassSection({
       <View
         style={{
           borderWidth: 1,
-          borderColor: colors.neutral[300],
+          borderColor: APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_CARD_BG,
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm + 2,
           flexDirection: 'row',
@@ -225,7 +232,7 @@ export function WalletPassSection({
           justifyContent: 'space-between',
         }}
       >
-        <Typography style={{ color: colors.neutral[700], fontSize: 14, fontWeight: '600' }}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, fontWeight: '600' }}>
           Wallet passes remaining
         </Typography>
         <Typography style={{ color: colors.pulse[600], fontSize: 18, fontWeight: '700' }}>
@@ -237,13 +244,13 @@ export function WalletPassSection({
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
-          <Typography style={{ color: colors.neutral[700], fontSize: 14, fontWeight: '600' }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, fontWeight: '600' }}>
             Passes to buy
           </Typography>
           {!purchaseEnabled ? (
             <Typography
               style={{
-                color: colors.neutral[500],
+                color: APP_DARK_MUTED,
                 fontSize: 11,
                 fontWeight: '700',
                 textTransform: 'uppercase',
@@ -261,9 +268,9 @@ export function WalletPassSection({
             alignItems: 'center',
             justifyContent: 'space-between',
             borderWidth: 1,
-            borderColor: colors.neutral[300],
+            borderColor: APP_DARK_SURFACE,
             borderRadius: radius.md,
-            backgroundColor: purchaseEnabled ? colors.neutral[0] : colors.neutral[100],
+            backgroundColor: purchaseEnabled ? APP_INPUT_BG : APP_DARK_BG,
             paddingHorizontal: spacing.sm,
             paddingVertical: spacing.xs,
             opacity: purchaseEnabled ? 1 : 0.85,
@@ -281,16 +288,16 @@ export function WalletPassSection({
               borderRadius: radius.sm,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: colors.neutral[100],
+              backgroundColor: APP_DARK_BG,
               opacity: !purchaseEnabled || paying || passesToBuy <= MIN_PASSES_TO_BUY ? 0.45 : 1,
             }}
           >
-            <Minus size={18} color={colors.neutral[800]} strokeWidth={2.2} />
+            <Minus size={18} color={colors.white} strokeWidth={2.2} />
           </Pressable>
 
           <Typography
             style={{
-              color: purchaseEnabled ? colors.neutral[900] : colors.neutral[500],
+              color: purchaseEnabled ? colors.white : APP_DARK_MUTED,
               fontSize: 18,
               fontWeight: '700',
               fontVariant: ['tabular-nums'],
@@ -313,20 +320,20 @@ export function WalletPassSection({
               borderRadius: radius.sm,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: colors.neutral[100],
+              backgroundColor: APP_DARK_BG,
               opacity: !purchaseEnabled || paying || passesToBuy >= MAX_PASSES_TO_BUY ? 0.45 : 1,
             }}
           >
-            <Plus size={18} color={colors.neutral[800]} strokeWidth={2.2} />
+            <Plus size={18} color={colors.white} strokeWidth={2.2} />
           </Pressable>
         </View>
 
         {purchaseEnabled ? (
-          <Typography style={{ color: colors.neutral[500], fontSize: 12, lineHeight: 18 }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, lineHeight: 18 }}>
             Total: {formatNaira(passesToBuy * WALLET_PASS_PRICE_NGN)}
           </Typography>
         ) : (
-          <Typography style={{ color: colors.neutral[500], fontSize: 12, lineHeight: 18 }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, lineHeight: 18 }}>
             Pass selection unlocks when your free trial ends.
           </Typography>
         )}
@@ -347,7 +354,7 @@ export function WalletPassSection({
           borderRadius: radius.md,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: purchaseEnabled ? colors.pulse[600] : colors.neutral[200],
+          backgroundColor: purchaseEnabled ? colors.pulse[600] : APP_DARK_SURFACE,
           opacity: paying ? 0.75 : 1,
         }}
       >
@@ -361,7 +368,7 @@ export function WalletPassSection({
         ) : (
           <Typography
             style={{
-              color: purchaseEnabled ? colors.white : colors.neutral[500],
+              color: purchaseEnabled ? colors.white : APP_DARK_MUTED,
               fontSize: 14,
               fontWeight: '700',
             }}

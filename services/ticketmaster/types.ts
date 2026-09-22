@@ -29,3 +29,77 @@ export interface TicketmasterEventDetails {
   seatMapUrl: string;
   orderNumber: string;
 }
+
+export interface TicketmasterFeedLocation {
+  city: string;
+  stateCode: string;
+  countryCode: string;
+}
+
+export interface TicketmasterHomeEvent {
+  id: string;
+  title: string;
+  imageUrl: string;
+  localDate: string;
+  localTime: string;
+  venueName: string;
+  city: string;
+  stateCode: string;
+  countryCode: string;
+  ticketmasterUrl: string;
+  attractionId: string;
+  attractionName: string;
+  segmentId: string;
+  segment: string;
+  genreId: string;
+  genre: string;
+}
+
+export interface TicketmasterForYouFeed {
+  location: TicketmasterFeedLocation | null;
+  events: TicketmasterHomeEvent[];
+}
+
+export interface TicketmasterLastMinuteFeed {
+  location: TicketmasterFeedLocation | null;
+  events: TicketmasterHomeEvent[];
+}
+
+export interface TicketmasterWeekendFeed {
+  location: TicketmasterFeedLocation | null;
+  events: TicketmasterHomeEvent[];
+}
+
+export interface TicketmasterJustAnnouncedFeed {
+  location: TicketmasterFeedLocation | null;
+  events: TicketmasterHomeEvent[];
+}
+
+export interface TicketmasterTrendingItem {
+  id: string;
+  rank: string;
+  name: string;
+  genre: string;
+  imageUrl: string;
+  ticketmasterUrl: string;
+}
+
+export interface TicketmasterTrendingFeed {
+  countryCode: string | null;
+  items: TicketmasterTrendingItem[];
+}
+
+export interface TicketmasterPreferenceGenre {
+  id: string;
+  name: string;
+}
+
+export interface TicketmasterPreferenceCategory {
+  id: string;
+  name: string;
+  genres: TicketmasterPreferenceGenre[];
+}
+
+export interface TicketmasterPreferenceOptions {
+  categories: TicketmasterPreferenceCategory[];
+}

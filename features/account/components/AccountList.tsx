@@ -1,17 +1,25 @@
-import { Pressable, Switch, View } from 'react-native';
-import { ChevronRight, SquarePen } from 'lucide-react-native';
+import { Children, Fragment, type ReactNode } from 'react';
+import { Pressable, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
-import { colors, spacing } from '@/theme/tokens';
+import {
+  APP_ACCOUNT_CARD,
+  APP_ACCOUNT_DIVIDER,
+  APP_ACCOUNT_TOGGLE_OFF,
+  APP_ACCOUNT_TOGGLE_ON,
+  APP_DARK_MUTED,
+} from '@/constants/app-surface';
+import { colors, radius, spacing } from '@/theme/tokens';
 
 export function AccountSectionTitle({ children }: { children: string }) {
   return (
     <Typography
       style={{
-        color: colors.neutral[900],
+        color: colors.white,
         fontSize: 16,
         fontWeight: '700',
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
+        paddingTop: spacing.xl,
         paddingBottom: spacing.sm,
       }}
     >
@@ -20,14 +28,51 @@ export function AccountSectionTitle({ children }: { children: string }) {
   );
 }
 
+export function AccountGroup({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const items = Children.toArray(children).filter(Boolean);
+
+  return (
+    <View
+      style={[
+        {
+          marginHorizontal: spacing.lg,
+          backgroundColor: APP_ACCOUNT_CARD,
+          borderRadius: radius.lg,
+          overflow: 'hidden',
+        },
+        style,
+      ]}
+    >
+      {items.map((child, index) => (
+        <Fragment key={index}>
+          {child}
+          {index < items.length - 1 ? (
+            <View
+              style={{
+                height: 1,
+                backgroundColor: APP_ACCOUNT_DIVIDER,
+                marginLeft: spacing.lg,
+              }}
+            />
+          ) : null}
+        </Fragment>
+      ))}
+    </View>
+  );
+}
+
 interface AccountListRowProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value?: string;
   badge?: number;
   showChevron?: boolean;
-  showEdit?: boolean;
-  destructive?: boolean;
   onPress?: () => void;
 }
 
@@ -37,8 +82,6 @@ export function AccountListRow({
   value,
   badge,
   showChevron = false,
-  showEdit = false,
-  destructive = false,
   onPress,
 }: AccountListRowProps) {
   const content = (
@@ -47,11 +90,9 @@ export function AccountListRow({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
+        paddingVertical: 14,
         gap: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.neutral[200],
-        backgroundColor: colors.neutral[0],
+        backgroundColor: APP_ACCOUNT_CARD,
       }}
     >
       <View style={{ width: 28, alignItems: 'center' }}>{icon}</View>
@@ -59,16 +100,16 @@ export function AccountListRow({
       <Typography
         style={{
           flex: 1,
-          color: destructive ? colors.error[500] : colors.neutral[900],
+          color: colors.white,
           fontSize: 16,
-          fontWeight: '500',
+          fontWeight: '400',
         }}
       >
         {label}
       </Typography>
 
       {value ? (
-        <Typography style={{ color: colors.pulse[500], fontSize: 15, fontWeight: '500' }}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 15, fontWeight: '400' }}>
           {value}
         </Typography>
       ) : null}
@@ -91,9 +132,7 @@ export function AccountListRow({
         </View>
       ) : null}
 
-      {showEdit ? <SquarePen size={18} color={colors.pulse[500]} /> : null}
-
-      {showChevron ? <ChevronRight size={18} color={colors.neutral[400]} /> : null}
+      {showChevron ? <ChevronRight size={18} color={APP_DARK_MUTED} strokeWidth={2} /> : null}
     </View>
   );
 
@@ -109,7 +148,7 @@ export function AccountListRow({
 }
 
 interface AccountToggleRowProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
@@ -122,22 +161,21 @@ export function AccountToggleRow({ icon, label, value, onValueChange }: AccountT
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
+        paddingVertical: 10,
         gap: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.neutral[200],
-        backgroundColor: colors.neutral[0],
+        backgroundColor: APP_ACCOUNT_CARD,
       }}
     >
       <View style={{ width: 28, alignItems: 'center' }}>{icon}</View>
-      <Typography style={{ flex: 1, color: colors.neutral[900], fontSize: 16, fontWeight: '500' }}>
+      <Typography style={{ flex: 1, color: colors.white, fontSize: 16, fontWeight: '400' }}>
         {label}
       </Typography>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: colors.neutral[300], true: colors.pulse[500] }}
+        trackColor={{ false: APP_ACCOUNT_TOGGLE_OFF, true: APP_ACCOUNT_TOGGLE_ON }}
         thumbColor={colors.white}
+        ios_backgroundColor={APP_ACCOUNT_TOGGLE_OFF}
       />
     </View>
   );

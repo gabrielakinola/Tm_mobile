@@ -1,6 +1,12 @@
 import { ActivityIndicator, Pressable, Modal as RNModal, View } from 'react-native';
 import { AlertCircle, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_DIVIDER,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { formatNaira } from '@/lib/format-currency';
 import { hapticLight } from '@/lib/haptics';
 import {
@@ -102,11 +108,11 @@ export function SubscriptionExpiredModal({
             onPress={handleClose}
             style={styles.closeButton}
           >
-            <X size={20} color={colors.neutral[500]} strokeWidth={2.2} />
+            <X size={20} color={APP_DARK_MUTED} strokeWidth={2.2} />
           </Pressable>
 
           <View style={styles.iconWrap}>
-            <AlertCircle size={24} color={colors.warning[700]} strokeWidth={2.2} />
+            <AlertCircle size={24} color={colors.warning[400]} strokeWidth={2.2} />
           </View>
 
           <View style={styles.copy}>
@@ -171,10 +177,10 @@ const styles = {
     padding: spacing.lg,
   },
   card: {
-    backgroundColor: colors.neutral[0],
+    backgroundColor: APP_CARD_BG,
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: APP_DARK_SURFACE,
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -195,20 +201,20 @@ const styles = {
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.warning[50],
+    backgroundColor: 'rgba(245, 158, 11, 0.16)',
   },
   copy: {
     gap: spacing.sm,
     paddingRight: spacing.xl,
   },
   title: {
-    color: colors.neutral[950],
+    color: colors.white,
     fontSize: 20,
     fontWeight: '700',
     lineHeight: 26,
   },
   message: {
-    color: colors.neutral[500],
+    color: APP_DARK_MUTED,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -216,34 +222,34 @@ const styles = {
     gap: spacing.sm,
     paddingTop: spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: colors.neutral[200],
+    borderTopColor: APP_DARK_DIVIDER,
   },
   feeSection: {
     gap: spacing.sm,
     marginTop: spacing.xs,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.neutral[100],
+    borderTopColor: APP_DARK_DIVIDER,
   },
   feeDivider: {
     height: 1,
-    backgroundColor: colors.neutral[200],
+    backgroundColor: APP_DARK_DIVIDER,
     marginVertical: spacing.xs,
   },
   detailLabel: {
     flex: 1,
-    color: colors.neutral[600],
+    color: APP_DARK_MUTED,
     fontSize: 13,
     lineHeight: 18,
   },
   detailLabelEmphasis: {
-    color: colors.neutral[900],
+    color: colors.white,
     fontWeight: '700',
   },
   detailValue: {
     flexShrink: 1,
     maxWidth: '58%',
-    color: colors.neutral[900],
+    color: colors.white,
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',

@@ -1,3 +1,4 @@
+import { formatCurrencyAmount } from '@/lib/currencies';
 import type { EventTicket, TicketMode } from '@/services/events/types';
 
 export function formatTransferSeatLine(
@@ -22,6 +23,6 @@ export function parseTransferFeeAmount(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function formatUsdAmount(amount: number): string {
-  return `$${amount.toFixed(2)}`;
+export function formatTransferFeeAmount(amount: number, currency?: string | null): string {
+  return formatCurrencyAmount(amount, currency);
 }

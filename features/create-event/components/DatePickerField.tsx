@@ -3,6 +3,13 @@ import { Modal, Pressable, View, type ViewStyle } from 'react-native';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
 import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
+import {
   addMonths,
   formatEventDateDisplay,
   formatMonthYear,
@@ -59,7 +66,7 @@ export function DatePickerField({
   return (
     <View style={[{ gap: spacing.xs }, containerStyle]}>
       {label ? (
-        <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+        <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
           {label}
           {required ? (
             <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
@@ -77,20 +84,20 @@ export function DatePickerField({
         style={{
           minHeight: 42,
           borderWidth: 1,
-          borderColor: hasError ? colors.error[500] : colors.neutral[300],
+          borderColor: hasError ? colors.error[500] : APP_DARK_SURFACE,
           borderRadius: radius.md,
-          backgroundColor: colors.neutral[0],
+          backgroundColor: APP_INPUT_BG,
           paddingHorizontal: spacing.md,
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.sm,
         }}
       >
-        <Calendar size={16} color={colors.neutral[500]} />
+        <Calendar size={16} color={APP_DARK_MUTED} />
         <Typography
           style={{
             flex: 1,
-            color: value ? colors.neutral[800] : colors.neutral[400],
+            color: value ? colors.white : APP_DARK_MUTED,
             fontSize: 14,
             paddingVertical: 10,
           }}
@@ -117,11 +124,11 @@ export function DatePickerField({
           <Pressable
             onPress={(event) => event.stopPropagation()}
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: APP_CARD_BG,
               borderRadius: radius.xl,
               padding: spacing.lg,
               borderWidth: 1,
-              borderColor: colors.neutral[200],
+              borderColor: APP_DARK_SURFACE,
               gap: spacing.md,
             }}
           >
@@ -133,11 +140,11 @@ export function DatePickerField({
               }}
             >
               <View style={{ gap: 2, flex: 1 }}>
-                <Typography style={{ color: colors.neutral[500], fontSize: 12, fontWeight: '600' }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
                   Select date
                 </Typography>
                 <Typography
-                  style={{ color: colors.neutral[950], fontSize: 20, fontWeight: '700' }}
+                  style={{ color: colors.white, fontSize: 20, fontWeight: '700' }}
                   numberOfLines={1}
                 >
                   {draftDate ? formatEventDateDisplay(draftDate) : 'Pick a day'}
@@ -154,10 +161,10 @@ export function DatePickerField({
                   borderRadius: radius.full,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: colors.neutral[100],
+                  backgroundColor: APP_DARK_BG,
                 }}
               >
-                <X size={16} color={colors.neutral[700]} />
+                <X size={16} color={APP_DARK_MUTED} />
               </Pressable>
             </View>
 
@@ -178,12 +185,12 @@ export function DatePickerField({
                   borderRadius: radius.full,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: colors.neutral[100],
+                  backgroundColor: APP_DARK_BG,
                 }}
               >
-                <ChevronLeft size={18} color={colors.neutral[800]} />
+                <ChevronLeft size={18} color={colors.white} />
               </Pressable>
-              <Typography style={{ color: colors.neutral[900], fontSize: 16, fontWeight: '700' }}>
+              <Typography style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
                 {formatMonthYear(visibleMonth)}
               </Typography>
               <Pressable
@@ -196,10 +203,10 @@ export function DatePickerField({
                   borderRadius: radius.full,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: colors.neutral[100],
+                  backgroundColor: APP_DARK_BG,
                 }}
               >
-                <ChevronRight size={18} color={colors.neutral[800]} />
+                <ChevronRight size={18} color={colors.white} />
               </Pressable>
             </View>
 
@@ -208,7 +215,7 @@ export function DatePickerField({
                 <View key={day} style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
                   <Typography
                     style={{
-                      color: colors.neutral[400],
+                      color: APP_DARK_MUTED,
                       fontSize: 12,
                       fontWeight: '700',
                     }}
@@ -262,8 +269,8 @@ export function DatePickerField({
                           color: selected
                             ? colors.white
                             : isToday
-                              ? colors.pulse[700]
-                              : colors.neutral[900],
+                              ? colors.pulse[300]
+                              : colors.white,
                           fontSize: 14,
                           fontWeight: selected || isToday ? '700' : '500',
                         }}
@@ -289,12 +296,12 @@ export function DatePickerField({
                   minHeight: 44,
                   borderRadius: radius.md,
                   borderWidth: 1,
-                  borderColor: colors.neutral[300],
+                  borderColor: APP_DARK_SURFACE,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+                <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                   Today
                 </Typography>
               </Pressable>

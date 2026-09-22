@@ -143,3 +143,11 @@ export const MOCK_TOP_VENUES: VenueCardData[] = [
 
 export { MOCK_DISCOVER_FEED_EVENTS, type DiscoverFeedEvent } from './discover-feed';
 export { MOCK_POPULAR_NEAR_YOU_CONCERTS, type PopularNearYouEvent } from './popular-near-you';
+export {
+  MOCK_HOME_FOR_YOU,
+  MOCK_HOME_TRENDING,
+  MOCK_HOME_WEEKEND,
+  type HomeForYouEvent,
+  type HomeTrendingItem,
+  type HomeWeekendEvent,
+} from './home-feed';

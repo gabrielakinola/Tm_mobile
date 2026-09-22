@@ -11,6 +11,12 @@ import {
   KeyboardAwareTextInput,
   Typography,
 } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { ManageEventCard } from '@/features/manage-events/components/ManageEventCard';
 import { ManageEventsListSkeleton } from '@/features/manage-events/components/ManageEventCardSkeleton';
 import { ManageEventsTabs } from '@/features/manage-events/components/ManageEventsTabs';
@@ -60,7 +66,7 @@ export default function ManageEventsScreen() {
   const showListSkeleton = query.isFetching && !query.isFetchingNextPage && !query.isRefetching;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Manage events"
         leftAction={
@@ -81,26 +87,26 @@ export default function ManageEventsScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             gap: spacing.sm,
-            backgroundColor: colors.white,
+            backgroundColor: APP_CARD_BG,
             borderRadius: radius.md,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             paddingHorizontal: spacing.md,
             minHeight: 44,
           }}
         >
-          <Search size={18} color={colors.neutral[400]} strokeWidth={2} />
+          <Search size={18} color={APP_DARK_MUTED} strokeWidth={2} />
           <KeyboardAwareTextInput
             containerStyle={{ flex: 1 }}
             value={searchInput}
             onChangeText={setSearchInput}
             placeholder="Search by event name or venue"
-            placeholderTextColor={colors.neutral[400]}
+            placeholderTextColor={APP_DARK_MUTED}
             autoCapitalize="none"
             autoCorrect={false}
             style={{
               flex: 1,
-              color: colors.neutral[900],
+              color: colors.white,
               fontSize: 15,
               paddingVertical: spacing.sm,
             }}
@@ -119,7 +125,7 @@ export default function ManageEventsScreen() {
       {showListSkeleton ? (
         <ManageEventsListSkeleton />
       ) : query.isError && events.length === 0 ? (
-        <ErrorState onRetry={() => void query.refetch()} />
+        <ErrorState inverted onRetry={() => void query.refetch()} />
       ) : (
         <FlatList
           data={events}
@@ -142,6 +148,7 @@ export default function ManageEventsScreen() {
             <ManageEventCard
               event={item}
               onView={() => router.push(`/my-events/${item.id}`)}
+              onReceipt={() => router.push(`/my-events/receipt/${item.id}`)}
               onEdit={() => router.push(`/create-event?id=${item.id}`)}
               onToggleHidden={() =>
                 setHiddenMutation.mutate({
@@ -158,12 +165,13 @@ export default function ManageEventsScreen() {
           )}
           ListEmptyComponent={
             <EmptyState
+              inverted
               icon={CalendarDays}
               title={debouncedSearch ? 'No matching events' : 'No events yet'}
               description={
                 debouncedSearch
                   ? 'Try a different name or venue.'
-                  : 'Create an event from For You to manage it here.'
+                  : 'Create an event from Watchlist to manage it here.'
               }
             />
           }
@@ -182,7 +190,7 @@ export default function ManageEventsScreen() {
               <Typography
                 style={{
                   textAlign: 'center',
-                  color: colors.neutral[400],
+                  color: APP_DARK_MUTED,
                   fontSize: 12,
                   paddingVertical: spacing.sm,
                 }}

@@ -12,6 +12,8 @@ export interface DefaultProfileSummary {
   city: string;
   mobileLast4: string;
   country: string;
+  preferredCategoryIds: string[];
+  preferredGenreIds: string[];
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;

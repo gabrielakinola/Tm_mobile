@@ -66,12 +66,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     if (inAdminGroup) {
-      router.replace('/(tabs)/discover');
+      router.replace('/(tabs)/home');
       return;
     }
 
     if (inAuthGroup) {
-      router.replace('/(tabs)/discover');
+      router.replace('/(tabs)/home');
     }
   }, [router, segments, status, user?.role]);
 

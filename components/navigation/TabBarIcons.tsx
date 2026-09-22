@@ -1,11 +1,13 @@
-import Svg, { Circle, G, Line, Path, Polygon, Rect } from 'react-native-svg';
+import { Image, View } from 'react-native';
+import Svg, { Circle, ClipPath, Defs, G, Line, Path, Polygon, Rect } from 'react-native-svg';
+import tmMark from '@/assets/images/Ticketmaster_short.png';
 
-const ICON_SIZE = 26;
+const ICON_SIZE = 30;
 
 const FOR_YOU_POLYGON_POINTS =
   '18.73 3.91 8.16 12.15 8.16 27.85 31.01 48.53 55.42 28.94 55.42 12.46 44.69 3.91 31.79 13.09 19.51 3.91 18.73 3.91';
 
-const INACTIVE_TAB_COLOR = '#9B9B9B';
+const INACTIVE_TAB_COLOR = '#8E8E93';
 const INACTIVE_BACK_POLYGON_COLOR = '#CCCCCC';
 const ACTIVE_DISCOVER_INNER_COLOR = '#8EB5F0';
 const FOR_YOU_LARGE_SCALE = 0.335;
@@ -23,8 +25,6 @@ const TICKET_HEIGHT = 9;
 const TICKET_CENTER_X = TICKET_WIDTH / 2;
 const TICKET_CENTER_Y = TICKET_HEIGHT / 2;
 const TICKET_BODY_PATH = `M 1.1 0 H 12.9 Q 14 0 14 1.1 V 3.35 A 1.15 1.15 0 0 0 14 5.65 V 7.9 Q 14 9 12.9 9 H 1.1 Q 0 9 0 7.9 V 1.1 Q 0 0 1.1 0 Z`;
-const TICKET_FRONT_ROTATION = -36;
-const TICKET_BACK_ROTATION = -64;
 const TICKET_OUTLINE_WIDTH = TAB_ICON_OUTLINE_WIDTH * FOR_YOU_LARGE_SCALE;
 const TICKET_OUTLINE_SCALE = 1 + (TICKET_OUTLINE_WIDTH * 2) / Math.min(TICKET_WIDTH, TICKET_HEIGHT);
 const TICKET_PERFORATION_X = TICKET_WIDTH * 0.8;
@@ -47,7 +47,7 @@ const TICKET_PERFORATION_SEGMENT_HEIGHT = 1.4;
 const TICKET_PERFORATION_SEGMENT_GAP = 1.25;
 const TICKET_PERFORATION_DASH = '0.85 1.05';
 
-function TicketPerforationLines() {
+function TicketPerforationLines({ stroke }: { stroke: string }) {
   const segments = Array.from({ length: 3 }, (_, index) => {
     const y1 =
       TICKET_PERFORATION_TOP +
@@ -61,7 +61,7 @@ function TicketPerforationLines() {
         y1={y1}
         x2={TICKET_PERFORATION_X}
         y2={y2}
-        stroke="#FFFFFF"
+        stroke={stroke}
         strokeWidth={0.8}
         strokeDasharray={TICKET_PERFORATION_DASH}
         strokeLinecap="round"
@@ -74,6 +74,7 @@ function TicketPerforationLines() {
 
 interface TicketShapeProps {
   fill: string;
+  detailFill?: string;
   opacity?: number;
   detailed?: boolean;
   outlined?: boolean;
@@ -82,6 +83,7 @@ interface TicketShapeProps {
 
 function TicketShape({
   fill,
+  detailFill = '#FFFFFF',
   opacity = 1,
   detailed = false,
   outlined = false,
@@ -99,7 +101,7 @@ function TicketShape({
         </G>
       ) : null}
       <Path d={TICKET_BODY_PATH} fill={fill} />
-      {showPerforation ? <TicketPerforationLines /> : null}
+      {showPerforation ? <TicketPerforationLines stroke={detailFill} /> : null}
       {detailed ? (
         <>
           <Rect
@@ -108,7 +110,7 @@ function TicketShape({
             width={TICKET_DETAIL_TOP_RENDER_WIDTH}
             height={TICKET_DETAIL_HEIGHT}
             rx={0.2}
-            fill="#FFFFFF"
+            fill={detailFill}
             opacity={0.95}
           />
           <Rect
@@ -117,7 +119,7 @@ function TicketShape({
             width={TICKET_DETAIL_BOTTOM_WIDTH}
             height={TICKET_DETAIL_HEIGHT}
             rx={0.2}
-            fill="#FFFFFF"
+            fill={detailFill}
             opacity={0.95}
           />
         </>
@@ -129,6 +131,115 @@ function TicketShape({
 export interface TabBarIconProps {
   color: string;
   size?: number;
+  focused?: boolean;
+  surfaceColor?: string;
+}
+
+const HOME_ICON_BLUE = '#1E4CD6';
+const HOME_ICON_VIEWBOX = 26;
+const HOME_CIRCLE_CX = 12.4;
+const HOME_CIRCLE_CY = 13.55;
+const HOME_CIRCLE_R = 9.4;
+
+function HomeSparkle({
+  cx,
+  cy,
+  outer = 3.35,
+  inner = 0.62,
+}: {
+  cx: number;
+  cy: number;
+  outer?: number;
+  inner?: number;
+}) {
+  const d = [
+    `M ${cx} ${cy - outer}`,
+    `L ${cx + inner} ${cy - inner}`,
+    `L ${cx + outer} ${cy}`,
+    `L ${cx + inner} ${cy + inner}`,
+    `L ${cx} ${cy + outer}`,
+    `L ${cx - inner} ${cy + inner}`,
+    `L ${cx - outer} ${cy}`,
+    `L ${cx - inner} ${cy - inner}`,
+    'Z',
+  ].join(' ');
+
+  return <Path d={d} fill="#FFFFFF" />;
+}
+
+export function HomeTabIcon({ size = ICON_SIZE, focused = false }: TabBarIconProps) {
+  const markRadius = 8.37;
+  const markSize = size * ((markRadius * 2) / HOME_ICON_VIEWBOX);
+  const markLeft = size * ((HOME_CIRCLE_CX - markRadius) / HOME_ICON_VIEWBOX);
+  const markTop = size * ((HOME_CIRCLE_CY - markRadius) / HOME_ICON_VIEWBOX);
+  const sparkleAngle = -58 * (Math.PI / 180);
+  const sparkleCx = HOME_CIRCLE_CX + HOME_CIRCLE_R * Math.cos(sparkleAngle);
+  const sparkleCy = HOME_CIRCLE_CY + HOME_CIRCLE_R * Math.sin(sparkleAngle);
+
+  return (
+    <View style={{ width: size, height: size }}>
+      <Svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${HOME_ICON_VIEWBOX} ${HOME_ICON_VIEWBOX}`}
+        style={{ position: 'absolute' }}
+      >
+        {focused ? (
+          <Circle cx={HOME_CIRCLE_CX} cy={HOME_CIRCLE_CY} r={HOME_CIRCLE_R} fill={HOME_ICON_BLUE} />
+        ) : (
+          <Circle
+            cx={HOME_CIRCLE_CX}
+            cy={HOME_CIRCLE_CY}
+            r={HOME_CIRCLE_R - 0.85}
+            stroke="#FFFFFF"
+            strokeWidth={1.3}
+            fill="none"
+          />
+        )}
+      </Svg>
+      <Image
+        source={tmMark}
+        accessibilityIgnoresInvertColors
+        resizeMode="contain"
+        style={{
+          position: 'absolute',
+          width: markSize,
+          height: markSize,
+          left: markLeft,
+          top: markTop,
+        }}
+      />
+      {focused ? (
+        <Svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${HOME_ICON_VIEWBOX} ${HOME_ICON_VIEWBOX}`}
+          style={{ position: 'absolute' }}
+        >
+          <HomeSparkle cx={sparkleCx} cy={sparkleCy} />
+        </Svg>
+      ) : null}
+    </View>
+  );
+}
+
+const WATCHLIST_ACTIVE_FILL = '#B16AF6';
+
+export function WatchlistTabIcon({ color, size = ICON_SIZE, focused = false }: TabBarIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
+      <G transform="translate(13 13) scale(1 0.9) translate(-13 -13)">
+        <Path
+          d="M10.35 3.55 H15.65 C16.95 3.55 17.7 4.35 17.7 5.55 V21.45 L13 17.7 L8.3 21.45 V5.55 C8.3 4.35 9.05 3.55 10.35 3.55 Z"
+          stroke={focused ? WATCHLIST_ACTIVE_FILL : color}
+          strokeWidth={1.3}
+          fill={focused ? WATCHLIST_ACTIVE_FILL : 'none'}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </G>
+    </Svg>
+  );
 }
 
 export function DiscoverTabIcon({ color, size = ICON_SIZE }: TabBarIconProps) {
@@ -194,22 +305,88 @@ export function ForYouTabIcon({ color, size = ICON_SIZE }: TabBarIconProps) {
   );
 }
 
-export function MyTicketsTabIcon({ color, size = ICON_SIZE }: TabBarIconProps) {
-  const isInactive = color.toUpperCase() === INACTIVE_TAB_COLOR;
-  const backFill = isInactive ? INACTIVE_BACK_POLYGON_COLOR : color;
-  const backOpacity = isInactive ? 1 : 0.42;
+const TICKETS_ACTIVE_BLUE = '#1E4CD6';
+const TICKET_CARD_W = 12.35;
+const TICKET_CARD_H = 14.52;
+const TICKET_CARD_RX = 2.05;
+const TICKET_BACK_W = 10.87;
+const TICKET_BACK_H = 12.78;
+const TICKET_BACK_RX = 1.8;
+const TICKET_STROKE = 1.3;
+const TICKET_GAP_STROKE = 2.4;
+const TICKET_BACK_ROTATION = 10;
+const TICKET_FRONT_ROTATION = -12.2;
+
+function ticketBodyPath(width: number, height: number, cut: number) {
+  const c = Math.min(cut, width / 2, height / 2);
+  return `M0 0H${width}V${height - c}L${width - c} ${height}H0Z`;
+}
+
+export function MyTicketsTabIcon({
+  color,
+  size = ICON_SIZE,
+  focused = false,
+  surfaceColor = '#000000',
+}: TabBarIconProps) {
+  const frontOriginX = TICKET_CARD_W / 2;
+  const frontOriginY = TICKET_CARD_H / 2;
+  const backOriginX = TICKET_BACK_W / 2;
+  const backOriginY = TICKET_BACK_H / 2;
+  const backFill = focused ? '#FFFFFF' : 'none';
+  const frontFill = focused ? TICKETS_ACTIVE_BLUE : surfaceColor;
+  const detail = focused ? '#FFFFFF' : color;
+  const backStroke = focused ? '#FFFFFF' : color;
+  const frontStroke = focused ? TICKETS_ACTIVE_BLUE : color;
 
   return (
     <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
       <G
-        transform={`translate(12.2, 10) rotate(${TICKET_BACK_ROTATION}) translate(${-TICKET_CENTER_X - 1.2}, ${-TICKET_CENTER_Y - 2.6})`}
+        transform={`translate(15.55 15.7) rotate(${TICKET_BACK_ROTATION}) translate(${-backOriginX} ${-backOriginY})`}
       >
-        <TicketShape fill={backFill} opacity={backOpacity} perforated />
+        <Path
+          d={ticketBodyPath(TICKET_BACK_W, TICKET_BACK_H, TICKET_BACK_RX)}
+          fill={backFill}
+          stroke={backStroke}
+          strokeWidth={TICKET_STROKE}
+          strokeLinejoin="miter"
+        />
       </G>
       <G
-        transform={`translate(13, 13.25) rotate(${TICKET_FRONT_ROTATION}) translate(${-TICKET_CENTER_X}, ${-TICKET_CENTER_Y})`}
+        transform={`translate(11.45 14.15) rotate(${TICKET_FRONT_ROTATION}) translate(${-frontOriginX} ${-frontOriginY})`}
       >
-        <TicketShape fill={color} detailed outlined />
+        {!focused ? (
+          <Path
+            d={ticketBodyPath(TICKET_CARD_W, TICKET_CARD_H, TICKET_CARD_RX)}
+            fill={frontFill}
+            stroke={surfaceColor}
+            strokeWidth={TICKET_GAP_STROKE}
+            strokeLinejoin="miter"
+          />
+        ) : null}
+        <Path
+          d={ticketBodyPath(TICKET_CARD_W, TICKET_CARD_H, TICKET_CARD_RX)}
+          fill={frontFill}
+          stroke={frontStroke}
+          strokeWidth={TICKET_STROKE}
+          strokeLinejoin="miter"
+        />
+        <Rect
+          x={2.2}
+          y={3.55}
+          width={7.95}
+          height={4.75}
+          fill="none"
+          stroke={detail}
+          strokeWidth={TICKET_STROKE}
+        />
+        <Rect x={3.9} y={5.05} width={4.55} height={1.75} fill={detail} />
+        <Rect
+          x={2.2 - TICKET_STROKE / 2}
+          y={10.2}
+          width={6.45 + TICKET_STROKE / 2}
+          height={1.55}
+          fill={detail}
+        />
       </G>
     </Svg>
   );
@@ -358,33 +535,63 @@ export function SellTabIcon({ color, size = ICON_SIZE }: TabBarIconProps) {
   );
 }
 
-const ACCOUNT_DISC_CENTER = 13;
-const ACCOUNT_DISC_RADIUS = 9.5;
-const ACCOUNT_HEAD_RADIUS = 2.45;
-const ACCOUNT_HEAD_CY = 10.1;
-const ACCOUNT_SHOULDER_RADIUS = 6.85;
-const ACCOUNT_SHOULDER_CY = 21.15;
+const ACCOUNT_ACTIVE_FILL = '#1E4CD6';
+const ACCOUNT_CX = 13;
+const ACCOUNT_CY = 13;
+const ACCOUNT_R = 8.85;
+const ACCOUNT_HEAD_R = 2.85;
+const ACCOUNT_HEAD_CY = 10.75;
+const ACCOUNT_CLIP_ID = 'account-tab-icon-clip';
 
-export function MyAccountTabIcon({ color, size = ICON_SIZE }: TabBarIconProps) {
+/** Cut-off hexagon body: flat top, 45° shoulders, vertical sides. */
+const ACCOUNT_BODY_PATH =
+  'M 8.64 15.35 L 17.36 15.35 L 19.6 17.6 L 19.6 21.4 L 6.4 21.4 L 6.4 17.6 Z';
+const ACCOUNT_BODY_OUTLINE_PATH =
+  'M 6.4 18.9 L 6.4 17.6 L 8.64 15.35 L 17.36 15.35 L 19.6 17.6 L 19.6 18.9';
+
+export function MyAccountTabIcon({ size = ICON_SIZE, focused = false }: TabBarIconProps) {
+  if (focused) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
+        <Defs>
+          <ClipPath id={ACCOUNT_CLIP_ID}>
+            <Circle cx={ACCOUNT_CX} cy={ACCOUNT_CY} r={ACCOUNT_R} />
+          </ClipPath>
+        </Defs>
+        <Circle cx={ACCOUNT_CX} cy={ACCOUNT_CY} r={ACCOUNT_R} fill={ACCOUNT_ACTIVE_FILL} />
+        <G clipPath={`url(#${ACCOUNT_CLIP_ID})`}>
+          <Circle cx={ACCOUNT_CX} cy={ACCOUNT_HEAD_CY} r={ACCOUNT_HEAD_R} fill="#FFFFFF" />
+          <Path d={ACCOUNT_BODY_PATH} fill="#FFFFFF" />
+        </G>
+      </Svg>
+    );
+  }
+
   return (
     <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
       <Circle
-        cx={ACCOUNT_DISC_CENTER}
-        cy={ACCOUNT_DISC_CENTER}
-        r={ACCOUNT_DISC_RADIUS}
-        fill={color}
+        cx={ACCOUNT_CX}
+        cy={ACCOUNT_CY}
+        r={ACCOUNT_R}
+        stroke="#FFFFFF"
+        strokeWidth={1.3}
+        fill="none"
       />
       <Circle
-        cx={ACCOUNT_DISC_CENTER}
+        cx={ACCOUNT_CX}
         cy={ACCOUNT_HEAD_CY}
-        r={ACCOUNT_HEAD_RADIUS}
-        fill="#FFFFFF"
+        r={ACCOUNT_HEAD_R}
+        stroke="#FFFFFF"
+        strokeWidth={1.3}
+        fill="none"
       />
-      <Circle
-        cx={ACCOUNT_DISC_CENTER}
-        cy={ACCOUNT_SHOULDER_CY}
-        r={ACCOUNT_SHOULDER_RADIUS}
-        fill="#FFFFFF"
+      <Path
+        d={ACCOUNT_BODY_OUTLINE_PATH}
+        stroke="#FFFFFF"
+        strokeWidth={1.3}
+        fill="none"
+        strokeLinejoin="round"
+        strokeLinecap="round"
       />
     </Svg>
   );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, ClipboardList, RefreshCw } from 'lucide-react-native';
 import {
   ConfirmModal,
   ErrorState,
@@ -11,7 +11,12 @@ import {
   Typography,
   useToast,
 } from '@/components/ui';
-import { useAdminUser, useDeleteAdminUser } from '@/hooks/admin/useAdminUsers';
+import {
+  useAdminUser,
+  useDeleteAdminUser,
+  useExtendAdminUserSubscription,
+} from '@/hooks/admin/useAdminUsers';
+import { addCalendarMonths, getSubscriptionDaysLeft } from '@/lib/subscription';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 function AccessTypeCapsule({ accessType }: { accessType: 'LIFETIME' | 'MONTHLY' }) {
@@ -77,7 +82,9 @@ export default function AdminUserDetailScreen() {
   const userId = typeof id === 'string' ? id : undefined;
   const userQuery = useAdminUser(userId);
   const deleteMutation = useDeleteAdminUser();
+  const extendMutation = useExtendAdminUserSubscription();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmExtend, setConfirmExtend] = useState(false);
 
   const backAction = (
     <Pressable
@@ -114,6 +121,19 @@ export default function AdminUserDetailScreen() {
 
   const user = userQuery.data;
   const profile = user.defaultProfile;
+  const isLifetime = user.accessType === 'LIFETIME';
+  const daysLeft = getSubscriptionDaysLeft(user.subscriptionExpiresAt);
+  const isExpired = !isLifetime && daysLeft === 0;
+  const extendLabel = isExpired ? 'Renew' : 'Top up';
+  const nextExpiry = isExpired
+    ? addCalendarMonths(new Date(), 1)
+    : addCalendarMonths(
+        user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : new Date(),
+        1,
+      );
+  const extendMessage = isExpired
+    ? `This subscription has expired. Renewing starts a new month from today, not from the old expiry date. Access will run until ${formatDate(nextExpiry.toISOString())}.`
+    : `This user has ${daysLeft} day${daysLeft === 1 ? '' : 's'} left. Topping up adds one calendar month on top of the current expiry. Access will then run until ${formatDate(nextExpiry.toISOString())}.`;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
@@ -145,6 +165,12 @@ export default function AdminUserDetailScreen() {
             <AccessTypeCapsule accessType={user.accessType} />
           </View>
           <DetailRow label="Subscription expires" value={formatDate(user.subscriptionExpiresAt)} />
+          {!isLifetime ? (
+            <DetailRow
+              label="Days left"
+              value={isExpired ? 'Expired' : `${daysLeft} day${daysLeft === 1 ? '' : 's'}`}
+            />
+          ) : null}
           <DetailRow label="Created" value={formatDate(user.createdAt)} />
           <DetailRow label="Updated" value={formatDate(user.updatedAt)} />
         </View>
@@ -206,13 +232,69 @@ export default function AdminUserDetailScreen() {
           />
           <DetailRow
             label="Transfer fee interruption"
-            value={user.settings.enableTransferFeeInterruption ? 'Enabled' : 'Disabled'}
+            value={
+              user.settings.enableTransferFeeInterruption
+                ? `${user.settings.transferFeeCurrency || 'USD'} ${user.settings.transferFeePerTicket || '—'}`.trim()
+                : 'Disabled'
+            }
           />
           <DetailRow
             label="Acceptance authorization"
             value={user.settings.enableTransferAcceptanceAuthorization ? 'Enabled' : 'Disabled'}
           />
         </View>
+
+        {!isLifetime ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={extendLabel}
+            disabled={extendMutation.isPending}
+            onPress={() => setConfirmExtend(true)}
+            style={{
+              minHeight: 48,
+              borderRadius: radius.lg,
+              backgroundColor: colors.pulse[600],
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing.sm,
+              opacity: extendMutation.isPending ? 0.7 : 1,
+            }}
+          >
+            {extendMutation.isPending ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <>
+                <RefreshCw size={18} color={colors.white} strokeWidth={2.2} />
+                <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}>
+                  {extendLabel}
+                </Typography>
+              </>
+            )}
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="View activity"
+          onPress={() => router.push(`/admin/activity/${user.id}`)}
+          style={{
+            minHeight: 48,
+            borderRadius: radius.lg,
+            backgroundColor: colors.white,
+            borderWidth: 1,
+            borderColor: colors.pulse[200],
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.sm,
+          }}
+        >
+          <ClipboardList size={18} color={colors.pulse[700]} strokeWidth={2.2} />
+          <Typography style={{ color: colors.pulse[700], fontSize: 15, fontWeight: '700' }}>
+            View activity
+          </Typography>
+        </Pressable>
 
         <Pressable
           accessibilityRole="button"
@@ -236,6 +318,35 @@ export default function AdminUserDetailScreen() {
           )}
         </Pressable>
       </ScrollView>
+
+      <ConfirmModal
+        visible={confirmExtend}
+        title={isExpired ? 'Renew subscription?' : 'Top up subscription?'}
+        message={extendMessage}
+        confirmLabel={extendLabel}
+        variant="default"
+        loading={extendMutation.isPending}
+        onClose={() => setConfirmExtend(false)}
+        onConfirm={() => {
+          if (!userId) return;
+          extendMutation.mutate(userId, {
+            onSuccess: (response) => {
+              setConfirmExtend(false);
+              show({
+                message:
+                  response.action === 'renew'
+                    ? 'Subscription renewed from today.'
+                    : 'Subscription topped up by one month.',
+                variant: 'success',
+              });
+            },
+            onError: () => {
+              setConfirmExtend(false);
+              show({ message: 'Unable to update subscription.', variant: 'error' });
+            },
+          });
+        }}
+      />
 
       <ConfirmModal
         visible={confirmDelete}

@@ -1,6 +1,12 @@
 import { ActivityIndicator, Pressable, Modal as RNModal, View } from 'react-native';
 import { CircleCheck, Trash2, X } from 'lucide-react-native';
 import { Typography } from '@/components/ui/Typography';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { hapticLight } from '@/lib/haptics';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -54,11 +60,11 @@ export function ConfirmModal({
       >
         <Pressable
           style={{
-            backgroundColor: colors.neutral[0],
+            backgroundColor: APP_CARD_BG,
             borderRadius: radius.xl,
             padding: spacing.xl,
             borderWidth: 1,
-            borderColor: colors.neutral[200],
+            borderColor: APP_DARK_SURFACE,
             gap: spacing.lg,
           }}
           onPress={(event) => event.stopPropagation()}
@@ -78,7 +84,7 @@ export function ConfirmModal({
                     width: 44,
                     height: 44,
                     borderRadius: radius.md,
-                    backgroundColor: colors.error[50],
+                    backgroundColor: 'rgba(239, 68, 68, 0.18)',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -91,7 +97,7 @@ export function ConfirmModal({
                     width: 44,
                     height: 44,
                     borderRadius: radius.md,
-                    backgroundColor: colors.pulse[50],
+                    backgroundColor: APP_DARK_SURFACE,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -101,7 +107,7 @@ export function ConfirmModal({
               )}
               <Typography
                 style={{
-                  color: colors.neutral[950],
+                  color: colors.white,
                   fontSize: 20,
                   fontWeight: '700',
                   lineHeight: 26,
@@ -109,7 +115,7 @@ export function ConfirmModal({
               >
                 {title}
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 14, lineHeight: 20 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, lineHeight: 20 }}>
                 {message}
               </Typography>
             </View>
@@ -125,11 +131,11 @@ export function ConfirmModal({
                 borderRadius: radius.full,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: colors.neutral[100],
+                backgroundColor: APP_DARK_BG,
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              <X size={16} color={colors.neutral[700]} strokeWidth={2.2} />
+              <X size={16} color={APP_DARK_MUTED} strokeWidth={2.2} />
             </Pressable>
           </View>
 
@@ -143,13 +149,13 @@ export function ConfirmModal({
                 minHeight: 48,
                 borderRadius: radius.lg,
                 borderWidth: 1,
-                borderColor: colors.neutral[300],
+                borderColor: APP_DARK_SURFACE,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              <Typography style={{ color: colors.neutral[800], fontSize: 15, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '600' }}>
                 Cancel
               </Typography>
             </Pressable>

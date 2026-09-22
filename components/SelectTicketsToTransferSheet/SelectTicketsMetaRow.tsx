@@ -38,7 +38,7 @@ export const SelectTicketsMetaRow = memo(function SelectTicketsMetaRow({
         {summary}
       </Typography>
       <View style={styles.countWrap}>
-        <MyTicketsTabIcon color={colors.black} size={16} />
+        <MyTicketsTabIcon color={colors.black} size={16} surfaceColor={colors.white} />
         <Typography style={styles.countLabel}>{countLabel}</Typography>
       </View>
     </View>

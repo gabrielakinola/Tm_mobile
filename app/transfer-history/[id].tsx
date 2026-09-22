@@ -5,6 +5,12 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Trash2 } from 'lucide-react-native';
 import { ErrorState, Header, LoadingState, Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { TransferConfirmModal } from '@/features/transfer-history/components/TransferConfirmModal';
 import { useDeleteTransfer, useTransferDetail } from '@/hooks/transfers/useTransferHistory';
 import {
@@ -54,10 +60,10 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <View style={{ gap: 2 }}>
-      <Typography style={{ color: colors.neutral[500], fontSize: 12, fontWeight: '600' }}>
+      <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
         {label}
       </Typography>
-      <Typography style={{ color: colors.neutral[900], fontSize: 15 }}>{value}</Typography>
+      <Typography style={{ color: colors.white, fontSize: 15 }}>{value}</Typography>
     </View>
   );
 }
@@ -83,7 +89,7 @@ export default function TransferHistoryDetailScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Transfer details"
         leftAction={
@@ -115,9 +121,10 @@ export default function TransferHistoryDetailScreen() {
       />
 
       {query.isLoading ? (
-        <LoadingState message="Loading transfer…" />
+        <LoadingState inverted message="Loading transfer…" />
       ) : query.isError || !transfer ? (
         <ErrorState
+          inverted
           title="Transfer not found"
           message="This transfer may have been removed or is unavailable."
           onRetry={() => void query.refetch()}
@@ -134,10 +141,10 @@ export default function TransferHistoryDetailScreen() {
         >
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: APP_CARD_BG,
               borderRadius: radius.md,
               borderWidth: 1,
-              borderColor: colors.neutral[200],
+              borderColor: APP_DARK_SURFACE,
               overflow: 'hidden',
             }}
           >
@@ -153,7 +160,7 @@ export default function TransferHistoryDetailScreen() {
               <View
                 style={{
                   alignSelf: 'flex-start',
-                  backgroundColor: colors.pulse[50],
+                  backgroundColor: APP_DARK_SURFACE,
                   paddingHorizontal: spacing.sm,
                   paddingVertical: 4,
                   borderRadius: radius.full,
@@ -164,7 +171,7 @@ export default function TransferHistoryDetailScreen() {
                 </Typography>
               </View>
 
-              <Typography style={{ color: colors.neutral[950], fontSize: 22, fontWeight: '800' }}>
+              <Typography style={{ color: colors.white, fontSize: 22, fontWeight: '800' }}>
                 {transfer.event?.name || 'Event unavailable'}
               </Typography>
 
@@ -185,17 +192,17 @@ export default function TransferHistoryDetailScreen() {
 
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: APP_CARD_BG,
               borderRadius: radius.md,
               borderWidth: 1,
-              borderColor: colors.neutral[200],
+              borderColor: APP_DARK_SURFACE,
               padding: spacing.lg,
               gap: spacing.md,
             }}
           >
             <Typography
               style={{
-                color: colors.neutral[400],
+                color: APP_DARK_MUTED,
                 fontSize: 11,
                 fontWeight: '700',
                 letterSpacing: 0.8,
@@ -213,17 +220,17 @@ export default function TransferHistoryDetailScreen() {
 
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: APP_CARD_BG,
               borderRadius: radius.md,
               borderWidth: 1,
-              borderColor: colors.neutral[200],
+              borderColor: APP_DARK_SURFACE,
               padding: spacing.lg,
               gap: spacing.md,
             }}
           >
             <Typography
               style={{
-                color: colors.neutral[400],
+                color: APP_DARK_MUTED,
                 fontSize: 11,
                 fontWeight: '700',
                 letterSpacing: 0.8,
@@ -238,10 +245,10 @@ export default function TransferHistoryDetailScreen() {
                 style={{
                   paddingVertical: spacing.sm,
                   borderTopWidth: index === 0 ? 0 : 1,
-                  borderTopColor: colors.neutral[100],
+                  borderTopColor: APP_DARK_BG,
                 }}
               >
-                <Typography style={{ color: colors.neutral[900], fontSize: 15, fontWeight: '600' }}>
+                <Typography style={{ color: colors.white, fontSize: 15, fontWeight: '600' }}>
                   {formatTicketLine(ticket, index)}
                 </Typography>
               </View>

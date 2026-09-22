@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { ErrorState, Header, LoadingState, Typography } from '@/components/ui';
+import { APP_DARK_BG, APP_DARK_MUTED } from '@/constants/app-surface';
 import { TransferConfirmModal } from '@/features/transfer-history/components/TransferConfirmModal';
 import {
   useAuthorizeTransferAcceptance,
@@ -47,18 +48,19 @@ export default function AuthorizeTransferScreen() {
 
   if (query.isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+      <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
         <Header title="Transfer Authorization" leftAction={closeHeaderAction} />
-        <LoadingState message="Loading transfer…" />
+        <LoadingState inverted message="Loading transfer…" />
       </View>
     );
   }
 
   if (query.isError || !transfer) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+      <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
         <Header title="Transfer Authorization" leftAction={closeHeaderAction} />
         <ErrorState
+          inverted
           title="Transfer not found"
           message="This transfer may have been removed or is unavailable."
           onRetry={() => void query.refetch()}
@@ -69,10 +71,10 @@ export default function AuthorizeTransferScreen() {
 
   if (!transfer.pendingSenderAuthorization) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+      <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
         <Header title="Transfer Authorization" leftAction={closeHeaderAction} />
         <View style={{ padding: spacing.lg }}>
-          <Typography style={{ fontSize: 16, color: colors.neutral[700] }}>
+          <Typography style={{ fontSize: 16, color: APP_DARK_MUTED }}>
             This transfer no longer requires authorization.
           </Typography>
         </View>
@@ -83,7 +85,7 @@ export default function AuthorizeTransferScreen() {
   const recipientFirstName = transfer.recipient.firstName.trim() || 'The recipient';
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.white }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header title="Transfer Authorization" leftAction={closeHeaderAction} />
 
       <View
@@ -112,7 +114,7 @@ export default function AuthorizeTransferScreen() {
             marginTop: spacing.lg,
             fontSize: 16,
             lineHeight: 22,
-            color: colors.neutral[900],
+            color: colors.white,
             textAlign: 'center',
           }}
         >
@@ -136,7 +138,7 @@ export default function AuthorizeTransferScreen() {
             marginTop: spacing.xl,
             fontSize: 15,
             lineHeight: 22,
-            color: colors.neutral[800],
+            color: colors.white,
             textAlign: 'center',
           }}
         >

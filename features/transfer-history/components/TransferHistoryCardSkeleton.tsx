@@ -1,15 +1,16 @@
 import { View } from 'react-native';
 import { Skeleton, SkeletonGroup } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme/tokens';
+import { APP_CARD_BG, APP_DARK_BG, APP_DARK_SURFACE } from '@/constants/app-surface';
+import { radius, spacing } from '@/theme/tokens';
 
 export function TransferHistoryCardSkeleton() {
   return (
     <View
       style={{
-        backgroundColor: colors.white,
+        backgroundColor: APP_CARD_BG,
         borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         overflow: 'hidden',
         flexDirection: 'row',
         minHeight: 104,
@@ -27,7 +28,7 @@ export function TransferHistoryCardSkeleton() {
             marginTop: spacing.xs,
             paddingTop: spacing.xs,
             borderTopWidth: 1,
-            borderTopColor: colors.neutral[100],
+            borderTopColor: APP_DARK_BG,
             gap: 6,
           }}
         >

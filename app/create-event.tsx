@@ -7,6 +7,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { DropdownMenu, Header, Typography, useToast } from '@/components/ui';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { DatePickerField } from '@/features/create-event/components/DatePickerField';
 import {
   FormCard,
@@ -17,6 +24,11 @@ import {
 import { TicketmasterSearch } from '@/features/create-event/components/ticketmaster-search';
 import { TimePickerField } from '@/features/create-event/components/TimePickerField';
 import { formatEventDateFromIso } from '@/features/create-event/date-utils';
+import {
+  generateFakeBillingAddress,
+  PAYMENT_METHOD_OPTIONS,
+  sanitizeCardLast4,
+} from '@/features/create-event/payment-utils';
 import { formatEventTimeFrom24h } from '@/features/create-event/time-utils';
 import {
   hasFormErrors,
@@ -30,17 +42,12 @@ import {
 import { useCreateEvent } from '@/hooks/events/useCreateEvent';
 import { useUpdateEvent } from '@/hooks/events/useManageEvents';
 import { useMyEvent } from '@/hooks/events/useMyEvent';
+import { CURRENCY_OPTIONS } from '@/lib/currencies';
 import { getCreateEventErrorMessage } from '@/lib/event-errors';
+import { hapticLight } from '@/lib/haptics';
 import type { EventImageInput } from '@/services/events/types';
 import type { TicketmasterEventDetails } from '@/services/ticketmaster/types';
 import { colors, radius, spacing } from '@/theme/tokens';
-
-const CURRENCY_OPTIONS = [
-  { label: 'USD', value: 'USD' },
-  { label: 'EUR', value: 'EUR' },
-  { label: 'GBP', value: 'GBP' },
-  { label: 'CAD', value: 'CAD' },
-];
 
 const SALE_LABEL_OPTIONS = [
   { label: 'General Sale', value: 'General Sale' },
@@ -70,6 +77,13 @@ function createInitialFormState() {
     currency: 'USD',
     price: '',
     fee: '',
+    paymentMethod: '',
+    cardLast4: '',
+    cardHolderName: '',
+    billingStreet: '',
+    billingCity: '',
+    billingState: '',
+    billingPostalCode: '',
     orderNumber: '',
     saleLabelOption: 'General Sale',
     customSaleLabel: '',
@@ -139,6 +153,13 @@ export default function CreateEventScreen() {
   const [currency, setCurrency] = useState('USD');
   const [price, setPrice] = useState('');
   const [fee, setFee] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [cardLast4, setCardLast4] = useState('');
+  const [cardHolderName, setCardHolderName] = useState('');
+  const [billingStreet, setBillingStreet] = useState('');
+  const [billingCity, setBillingCity] = useState('');
+  const [billingState, setBillingState] = useState('');
+  const [billingPostalCode, setBillingPostalCode] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
   const [saleLabelOption, setSaleLabelOption] = useState('General Sale');
   const [customSaleLabel, setCustomSaleLabel] = useState('');
@@ -173,6 +194,13 @@ export default function CreateEventScreen() {
     setCurrency(event.currency || 'USD');
     setPrice(event.price ?? '');
     setFee(event.fee ?? '');
+    setPaymentMethod(event.paymentMethod ?? '');
+    setCardLast4(event.cardLast4 ?? '');
+    setCardHolderName(event.cardHolderName ?? '');
+    setBillingStreet(event.billingStreet ?? '');
+    setBillingCity(event.billingCity ?? '');
+    setBillingState(event.billingState ?? '');
+    setBillingPostalCode(event.billingPostalCode ?? '');
     setOrderNumber(event.orderNumber);
     const savedSaleLabel = event.saleLabel?.trim() || 'Standard Ticket';
     if (SALE_LABEL_OPTIONS.some((option) => option.value === savedSaleLabel)) {
@@ -221,6 +249,13 @@ export default function CreateEventScreen() {
     setCurrency(initial.currency);
     setPrice(initial.price);
     setFee(initial.fee);
+    setPaymentMethod(initial.paymentMethod);
+    setCardLast4(initial.cardLast4);
+    setCardHolderName(initial.cardHolderName);
+    setBillingStreet(initial.billingStreet);
+    setBillingCity(initial.billingCity);
+    setBillingState(initial.billingState);
+    setBillingPostalCode(initial.billingPostalCode);
     setOrderNumber(initial.orderNumber);
     setSaleLabelOption(initial.saleLabelOption);
     setCustomSaleLabel(initial.customSaleLabel);
@@ -396,6 +431,13 @@ export default function CreateEventScreen() {
       currency,
       price,
       fee,
+      paymentMethod,
+      cardLast4,
+      cardHolderName,
+      billingStreet,
+      billingCity,
+      billingState,
+      billingPostalCode,
       orderNumber,
       saleLabel: saleLabelOption === 'Custom' ? customSaleLabel : saleLabelOption,
       ticketMode,
@@ -487,7 +529,7 @@ export default function CreateEventScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title={isEditing ? 'Edit event' : 'Create event'}
         leftAction={
@@ -521,10 +563,10 @@ export default function CreateEventScreen() {
             <SectionLabel>Event</SectionLabel>
 
             <View style={{ gap: spacing.xs }}>
-              <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                 Image
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 Upload a file, or use Ticketmaster lookup — we fill a poster URL you can submit
                 as-is.
               </Typography>
@@ -532,9 +574,9 @@ export default function CreateEventScreen() {
                 <View
                   style={{
                     borderWidth: 1,
-                    borderColor: colors.neutral[300],
+                    borderColor: APP_DARK_SURFACE,
                     borderRadius: radius.md,
-                    backgroundColor: colors.neutral[50],
+                    backgroundColor: APP_INPUT_BG,
                     padding: spacing.sm,
                     gap: spacing.sm,
                   }}
@@ -546,7 +588,7 @@ export default function CreateEventScreen() {
                       width: '100%',
                       aspectRatio: 16 / 9,
                       borderRadius: radius.md,
-                      backgroundColor: colors.neutral[200],
+                      backgroundColor: APP_DARK_SURFACE,
                     }}
                   />
                   <View
@@ -558,7 +600,7 @@ export default function CreateEventScreen() {
                     }}
                   >
                     <Typography
-                      style={{ color: colors.neutral[700], fontSize: 12, flex: 1 }}
+                      style={{ color: APP_DARK_MUTED, fontSize: 12, flex: 1 }}
                       numberOfLines={1}
                     >
                       {eventImage.fileName}
@@ -569,15 +611,15 @@ export default function CreateEventScreen() {
                         onPress={removeImage}
                         style={{
                           borderWidth: 1,
-                          borderColor: colors.neutral[300],
+                          borderColor: APP_DARK_SURFACE,
                           borderRadius: radius.sm,
                           paddingHorizontal: spacing.sm,
                           paddingVertical: 6,
-                          backgroundColor: colors.neutral[0],
+                          backgroundColor: APP_CARD_BG,
                         }}
                       >
                         <Typography
-                          style={{ color: colors.neutral[700], fontSize: 12, fontWeight: '700' }}
+                          style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '700' }}
                         >
                           Remove
                         </Typography>
@@ -591,11 +633,11 @@ export default function CreateEventScreen() {
                           borderRadius: radius.sm,
                           paddingHorizontal: spacing.sm,
                           paddingVertical: 6,
-                          backgroundColor: colors.pulse[50],
+                          backgroundColor: APP_DARK_SURFACE,
                         }}
                       >
                         <Typography
-                          style={{ color: colors.pulse[700], fontSize: 12, fontWeight: '700' }}
+                          style={{ color: colors.pulse[300], fontSize: 12, fontWeight: '700' }}
                         >
                           Choose Another
                         </Typography>
@@ -608,9 +650,9 @@ export default function CreateEventScreen() {
                 style={{
                   minHeight: 42,
                   borderWidth: 1,
-                  borderColor: imageError ? colors.error[500] : colors.neutral[300],
+                  borderColor: imageError ? colors.error[500] : APP_DARK_SURFACE,
                   borderRadius: radius.md,
-                  backgroundColor: colors.neutral[0],
+                  backgroundColor: APP_CARD_BG,
                   paddingHorizontal: spacing.sm,
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -621,21 +663,19 @@ export default function CreateEventScreen() {
                   accessibilityRole="button"
                   onPress={pickImage}
                   style={{
-                    backgroundColor: colors.neutral[100],
+                    backgroundColor: APP_DARK_BG,
                     borderRadius: radius.sm,
                     paddingHorizontal: spacing.md,
                     paddingVertical: spacing.sm,
                   }}
                 >
-                  <Typography
-                    style={{ color: colors.neutral[900], fontSize: 13, fontWeight: '600' }}
-                  >
+                  <Typography style={{ color: colors.white, fontSize: 13, fontWeight: '600' }}>
                     {eventImage ? 'Replace File' : 'Choose File'}
                   </Typography>
                 </Pressable>
                 <Typography
                   style={{
-                    color: eventImage ? colors.neutral[800] : colors.neutral[500],
+                    color: eventImage ? colors.white : APP_DARK_MUTED,
                     fontSize: 13,
                     flex: 1,
                   }}
@@ -649,7 +689,7 @@ export default function CreateEventScreen() {
                   {imageError}
                 </Typography>
               ) : (
-                <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                   Uploading a file replaces the Ticketmaster poster for this submission. Only
                   picture files are accepted.
                 </Typography>
@@ -658,7 +698,7 @@ export default function CreateEventScreen() {
 
             <View
               style={{
-                backgroundColor: colors.pulse[50],
+                backgroundColor: APP_DARK_SURFACE,
                 borderWidth: 1,
                 borderColor: colors.pulse[200],
                 borderRadius: radius.md,
@@ -681,7 +721,7 @@ export default function CreateEventScreen() {
             />
 
             <View style={{ gap: spacing.xs }}>
-              <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                 Date & start time
                 <Typography style={{ color: colors.error[500], fontSize: 14, fontWeight: '600' }}>
                   {' '}
@@ -715,7 +755,7 @@ export default function CreateEventScreen() {
             </View>
 
             <View style={{ gap: spacing.xs }}>
-              <Typography style={{ color: colors.neutral[800], fontSize: 14, fontWeight: '600' }}>
+              <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
                 Purchase date & time (optional)
               </Typography>
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -742,7 +782,7 @@ export default function CreateEventScreen() {
                   />
                 </View>
               </View>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 Used in Order Details when a ticket seat is tapped.
               </Typography>
             </View>
@@ -786,7 +826,7 @@ export default function CreateEventScreen() {
                   containerStyle={{ flex: 1 }}
                 />
               </View>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 Map defaults to NYC if coordinates are blank.
               </Typography>
             </View>
@@ -831,7 +871,7 @@ export default function CreateEventScreen() {
                   containerStyle={{ flex: 1 }}
                 />
               </View>
-              <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
                 Fee requires a ticket price. Shown on ticket details.
               </Typography>
             </View>
@@ -862,12 +902,110 @@ export default function CreateEventScreen() {
             ) : null}
           </FormCard>
 
+          {/* PAYMENT */}
+          <FormCard>
+            <SectionLabel>Payment</SectionLabel>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: -spacing.sm }}>
+              Optional. Payment date uses the purchase date above. Ticket price and fee come from
+              Pricing & order.
+            </Typography>
+
+            <DropdownMenu
+              label="Payment method"
+              value={paymentMethod}
+              options={[{ label: 'None', value: '' }, ...PAYMENT_METHOD_OPTIONS]}
+              onChange={setPaymentMethod}
+              placeholder="Select card type"
+            />
+
+            <FormField
+              label="Last 4 digits"
+              value={cardLast4}
+              onChangeText={(value) => setCardLast4(sanitizeCardLast4(value))}
+              placeholder="1234"
+              keyboardType="number-pad"
+              maxLength={4}
+            />
+
+            <FormField
+              label="Card holder name"
+              value={cardHolderName}
+              onChangeText={setCardHolderName}
+              placeholder="e.g. Carlos Grande"
+              autoCapitalize="characters"
+            />
+
+            <View style={{ gap: spacing.md }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: spacing.md,
+                }}
+              >
+                <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '600' }}>
+                  Billing address
+                </Typography>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Autofill billing address"
+                  onPress={() => {
+                    void hapticLight();
+                    const address = generateFakeBillingAddress(venue);
+                    setBillingStreet(address.street);
+                    setBillingCity(address.city);
+                    setBillingState(address.state);
+                    setBillingPostalCode(address.postalCode);
+                  }}
+                  hitSlop={8}
+                >
+                  <Typography style={{ color: colors.pulse[600], fontSize: 13, fontWeight: '700' }}>
+                    Autofill
+                  </Typography>
+                </Pressable>
+              </View>
+
+              <FormField
+                label="Street"
+                value={billingStreet}
+                onChangeText={setBillingStreet}
+                placeholder="1414 S Pricedale Ave"
+              />
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                <FormField
+                  label="City"
+                  value={billingCity}
+                  onChangeText={setBillingCity}
+                  placeholder="West Covina"
+                  containerStyle={{ flex: 1 }}
+                />
+                <FormField
+                  label="State"
+                  value={billingState}
+                  onChangeText={(value) => setBillingState(value.toUpperCase().slice(0, 2))}
+                  placeholder="CA"
+                  autoCapitalize="characters"
+                  maxLength={2}
+                  containerStyle={{ width: 72 }}
+                />
+              </View>
+              <FormField
+                label="ZIP"
+                value={billingPostalCode}
+                onChangeText={(value) =>
+                  setBillingPostalCode(value.replace(/[^\d-]/g, '').slice(0, 10))
+                }
+                placeholder="91790"
+                keyboardType="number-pad"
+              />
+            </View>
+          </FormCard>
+
           {/* TICKETS */}
           <FormCard>
             <SectionLabel>Tickets</SectionLabel>
-            <Typography
-              style={{ color: colors.neutral[500], fontSize: 12, marginTop: -spacing.sm }}
-            >
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: -spacing.sm }}>
               1-8 tickets; each row is one seat assignment.
             </Typography>
 
@@ -875,7 +1013,7 @@ export default function CreateEventScreen() {
               style={{
                 flexDirection: 'row',
                 borderWidth: 1,
-                borderColor: colors.neutral[300],
+                borderColor: APP_DARK_SURFACE,
                 borderRadius: radius.md,
                 overflow: 'hidden',
               }}
@@ -895,12 +1033,12 @@ export default function CreateEventScreen() {
                       flex: 1,
                       paddingVertical: spacing.sm + 2,
                       alignItems: 'center',
-                      backgroundColor: active ? colors.pulse[600] : colors.neutral[50],
+                      backgroundColor: active ? colors.pulse[600] : APP_INPUT_BG,
                     }}
                   >
                     <Typography
                       style={{
-                        color: active ? colors.white : colors.neutral[700],
+                        color: active ? colors.white : APP_DARK_MUTED,
                         fontSize: 13,
                         fontWeight: '700',
                       }}
@@ -920,7 +1058,7 @@ export default function CreateEventScreen() {
                   borderColor:
                     submitAttempted && formErrors.tickets?.[ticket.id]
                       ? colors.error[500]
-                      : colors.neutral[300],
+                      : APP_DARK_SURFACE,
                   borderRadius: radius.md,
                   padding: spacing.md,
                   gap: spacing.sm,
@@ -933,9 +1071,7 @@ export default function CreateEventScreen() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Typography
-                    style={{ color: colors.neutral[900], fontSize: 14, fontWeight: '700' }}
-                  >
+                  <Typography style={{ color: colors.white, fontSize: 14, fontWeight: '700' }}>
                     Ticket {index + 1}
                   </Typography>
                   {tickets.length > 1 ? (
@@ -1003,7 +1139,7 @@ export default function CreateEventScreen() {
                 style={{
                   borderWidth: 1,
                   borderStyle: 'dashed',
-                  borderColor: canAddTicket ? colors.pulse[300] : colors.neutral[300],
+                  borderColor: canAddTicket ? colors.pulse[300] : APP_DARK_SURFACE,
                   borderRadius: radius.md,
                   minHeight: 44,
                   alignItems: 'center',
@@ -1013,7 +1149,7 @@ export default function CreateEventScreen() {
               >
                 <Typography
                   style={{
-                    color: canAddTicket ? colors.pulse[600] : colors.neutral[400],
+                    color: canAddTicket ? colors.pulse[600] : APP_DARK_MUTED,
                     fontSize: 14,
                     fontWeight: '700',
                   }}

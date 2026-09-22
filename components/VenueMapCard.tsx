@@ -82,6 +82,7 @@ function VenueMapCardComponent({ venue, location, latitude, longitude }: VenueMa
             <MapView
               style={styles.map}
               initialRegion={region}
+              userInterfaceStyle="dark"
               scrollEnabled
               zoomEnabled
               pitchEnabled={false}
@@ -144,12 +145,12 @@ export const VenueMapCard = memo(
 
 VenueMapCard.displayName = 'VenueMapCard';
 
+const MAP_CARD_BG = '#242424';
+
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: MAP_CARD_BG,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
     overflow: 'hidden',
     ...shadows.md,
   },
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
 
   mapSection: {
     height: MAP_HEIGHT,
-    backgroundColor: colors.neutral[100],
+    backgroundColor: MAP_CARD_BG,
     overflow: 'hidden',
   },
 
@@ -193,9 +194,9 @@ const styles = StyleSheet.create({
   // ===========================
   footerSection: {
     height: FOOTER_HEIGHT,
-    backgroundColor: colors.white,
+    backgroundColor: MAP_CARD_BG,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.neutral[200],
+    borderTopColor: '#1A1A1A',
 
     justifyContent: 'center',
     alignItems: 'center',
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   },
 
   directionsLabel: {
-    color: colors.neutral[900],
+    color: colors.white,
     fontSize: 14,
     fontWeight: '700',
     lineHeight: 18,

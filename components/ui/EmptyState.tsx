@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { spacing } from '@/theme/tokens';
+import { APP_DARK_MUTED } from '@/constants/app-surface';
+import { colors, spacing } from '@/theme/tokens';
 import { Button } from './Button';
 import { Icon } from './Icon';
 import { Typography } from './Typography';
@@ -11,9 +12,17 @@ export interface EmptyStateProps {
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  inverted?: boolean;
 }
 
-export function EmptyState({ icon, title, description, actionLabel, onAction }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  description,
+  actionLabel,
+  onAction,
+  inverted = false,
+}: EmptyStateProps) {
   return (
     <View
       style={{
@@ -24,13 +33,20 @@ export function EmptyState({ icon, title, description, actionLabel, onAction }: 
         gap: spacing.lg,
       }}
     >
-      <Icon icon={icon} size="2xl" />
+      <Icon icon={icon} size="2xl" color={inverted ? APP_DARK_MUTED : undefined} />
       <View style={{ alignItems: 'center', gap: spacing.sm }}>
-        <Typography variant="h3" style={{ textAlign: 'center' }}>
+        <Typography
+          variant="h3"
+          style={{ textAlign: 'center', color: inverted ? colors.white : undefined }}
+        >
           {title}
         </Typography>
         {description ? (
-          <Typography variant="body" muted style={{ textAlign: 'center' }}>
+          <Typography
+            variant="body"
+            muted
+            style={{ textAlign: 'center', color: inverted ? APP_DARK_MUTED : undefined }}
+          >
             {description}
           </Typography>
         ) : null}

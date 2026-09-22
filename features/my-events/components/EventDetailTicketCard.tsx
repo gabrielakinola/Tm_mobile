@@ -1,11 +1,12 @@
 import { View } from 'react-native';
 import { Typography } from '@/components/ui/Typography';
 import type { EventTicket, TicketMode } from '@/services/events/types';
-import { colors, spacing } from '@/theme/tokens';
+import { spacing } from '@/theme/tokens';
 
-const CARD_BG = '#F2F2F2';
-const DIVIDER = '#FFFFFF';
+const CARD_BG = '#242424';
+const DIVIDER = '#1A1A1A';
 const LABEL_COLOR = '#8A8A8A';
+const VALUE_COLOR = '#FFFFFF';
 
 export interface EventDetailTicketCardProps {
   ticket: EventTicket;
@@ -34,7 +35,7 @@ export function EventDetailTicketCard({ ticket, ticketMode, label }: EventDetail
       >
         <Typography
           style={{
-            color: colors.neutral[900],
+            color: VALUE_COLOR,
             fontSize: 14,
             lineHeight: 18,
             fontWeight: '700',
@@ -72,7 +73,7 @@ export function EventDetailTicketCard({ ticket, ticketMode, label }: EventDetail
           >
             <Typography
               style={{
-                color: colors.neutral[900],
+                color: VALUE_COLOR,
                 fontSize: 16,
                 lineHeight: 20,
                 fontWeight: '800',
@@ -119,7 +120,7 @@ function TicketField({
       </Typography>
       <Typography
         style={{
-          color: colors.neutral[900],
+          color: VALUE_COLOR,
           fontSize: 16,
           lineHeight: 20,
           fontWeight: '700',

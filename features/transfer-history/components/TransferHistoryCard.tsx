@@ -3,6 +3,12 @@ import { Image } from 'expo-image';
 import { ChevronRight, Trash2 } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
 import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
+import {
   getTransferHistoryStatusLabel,
   type TransferHistoryItem,
 } from '@/services/transfers/transfers.api';
@@ -56,10 +62,10 @@ export function TransferHistoryCard({
   return (
     <View
       style={{
-        backgroundColor: colors.white,
+        backgroundColor: APP_CARD_BG,
         borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         overflow: 'hidden',
         flexDirection: 'row',
         minHeight: 104,
@@ -78,7 +84,7 @@ export function TransferHistoryCard({
           style={{
             width: 96,
             alignSelf: 'stretch',
-            backgroundColor: colors.neutral[200],
+            backgroundColor: APP_DARK_SURFACE,
           }}
         />
       )}
@@ -92,18 +98,18 @@ export function TransferHistoryCard({
           style={{ gap: spacing.xs }}
         >
           <Typography
-            style={{ color: colors.neutral[950], fontSize: 16, fontWeight: '700' }}
+            style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}
             numberOfLines={2}
           >
             {eventName}
           </Typography>
 
-          <Typography style={{ color: colors.neutral[500], fontSize: 13 }} numberOfLines={1}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }} numberOfLines={1}>
             {venue}
           </Typography>
 
           {event ? (
-            <Typography style={{ color: colors.neutral[600], fontSize: 12 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
               {formatEventDate(event.eventDate)}
               {event.eventTime ? ` · ${event.eventTime}` : ''}
             </Typography>
@@ -114,17 +120,17 @@ export function TransferHistoryCard({
               marginTop: spacing.xs,
               paddingTop: spacing.xs,
               borderTopWidth: 1,
-              borderTopColor: colors.neutral[100],
+              borderTopColor: APP_DARK_BG,
               gap: 2,
             }}
           >
-            <Typography style={{ color: colors.neutral[900], fontSize: 13, fontWeight: '700' }}>
+            <Typography style={{ color: colors.white, fontSize: 13, fontWeight: '700' }}>
               To {transfer.recipient.name}
             </Typography>
-            <Typography style={{ color: colors.neutral[500], fontSize: 12 }} numberOfLines={1}>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }} numberOfLines={1}>
               {transfer.recipient.email}
             </Typography>
-            <Typography style={{ color: colors.neutral[600], fontSize: 12 }}>
+            <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
               {ticketLabel}
               {transfer.transferredAt ? ` · ${formatTransferredAt(transfer.transferredAt)}` : ''}
               {` · ${statusLabel}`}

@@ -5,7 +5,8 @@ import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { ChevronLeft } from 'lucide-react-native';
-import { Header, KeyboardAwareScrollView, Typography } from '@/components/ui';
+import { DropdownMenu, Header, KeyboardAwareScrollView, Typography } from '@/components/ui';
+import { APP_DARK_BG } from '@/constants/app-surface';
 import { FormCard, FormField } from '@/features/create-event/components/FormFields';
 import { SettingsSavedModal } from '@/features/settings/components/SettingsSavedModal';
 import { SettingsSectionTitle } from '@/features/settings/components/SettingsSectionTitle';
@@ -15,6 +16,7 @@ import {
   WalletPassSection,
 } from '@/features/settings/components/WalletPassSection';
 import { settingsQueryKey } from '@/features/settings/settings-query-key';
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY, normalizeCurrency } from '@/lib/currencies';
 import {
   getUserSettings,
   updateUserSettings,
@@ -52,6 +54,7 @@ export default function SettingsScreen() {
 
   const [enableWalletForTicketTransfers, setEnableWalletForTicketTransfers] = useState(false);
   const [enableTransferFeeInterruption, setEnableTransferFeeInterruption] = useState(false);
+  const [transferFeeCurrency, setTransferFeeCurrency] = useState(DEFAULT_CURRENCY);
   const [transferFeePerTicket, setTransferFeePerTicket] = useState('');
   const [enableMinTicketsInterruption, setEnableMinTicketsInterruption] = useState(false);
   const [minTicketsPerTransfer, setMinTicketsPerTransfer] = useState('');
@@ -66,6 +69,7 @@ export default function SettingsScreen() {
 
     setEnableWalletForTicketTransfers(settingsQuery.data.enableWalletForTicketTransfers);
     setEnableTransferFeeInterruption(settingsQuery.data.enableTransferFeeInterruption);
+    setTransferFeeCurrency(normalizeCurrency(settingsQuery.data.transferFeeCurrency));
     setTransferFeePerTicket(settingsQuery.data.transferFeePerTicket);
     setEnableMinTicketsInterruption(settingsQuery.data.enableMinTicketsInterruption);
     setMinTicketsPerTransfer(settingsQuery.data.minTicketsPerTransfer);
@@ -80,6 +84,9 @@ export default function SettingsScreen() {
         enableWalletForTicketTransfers,
         enableTransferFeeInterruption,
         transferFeePerTicket: enableTransferFeeInterruption ? transferFeePerTicket.trim() : '',
+        transferFeeCurrency: enableTransferFeeInterruption
+          ? normalizeCurrency(transferFeeCurrency)
+          : undefined,
         enableMinTicketsInterruption,
         minTicketsPerTransfer: enableMinTicketsInterruption ? minTicketsPerTransfer.trim() : '',
         enableTransferAcceptanceAuthorization,
@@ -99,14 +106,14 @@ export default function SettingsScreen() {
 
   if (settingsQuery.isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.neutral[100], justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: APP_DARK_BG, justifyContent: 'center' }}>
         <ActivityIndicator size="large" color={colors.pulse[600]} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Settings"
         leftAction={
@@ -181,13 +188,23 @@ export default function SettingsScreen() {
           />
 
           {enableTransferFeeInterruption ? (
-            <FormField
-              label="Transfer fee per ticket"
-              value={transferFeePerTicket}
-              onChangeText={setTransferFeePerTicket}
-              placeholder="110.10"
-              keyboardType="decimal-pad"
-            />
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              <DropdownMenu
+                label="Currency"
+                value={transferFeeCurrency}
+                options={CURRENCY_OPTIONS}
+                onChange={setTransferFeeCurrency}
+                style={{ flex: 1 }}
+              />
+              <FormField
+                label="Fee"
+                value={transferFeePerTicket}
+                onChangeText={setTransferFeePerTicket}
+                placeholder="110.10"
+                keyboardType="decimal-pad"
+                containerStyle={{ flex: 1 }}
+              />
+            </View>
           ) : null}
 
           <SettingsToggleRow

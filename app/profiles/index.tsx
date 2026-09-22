@@ -5,6 +5,13 @@ import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, Pencil, Plus, Trash2 } from 'lucide-react-native';
 import { CountryFlagBadge } from '@/components/navigation/CountryFlagBadge';
 import { Header, Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { COUNTRY_OPTIONS } from '@/features/profile-location/constants';
 import { useDeleteProfile, useProfiles, useSetDefaultProfile } from '@/hooks/profiles/useProfiles';
 import { formatProfileName } from '@/lib/profile-name';
@@ -78,7 +85,7 @@ export default function ProfilesScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Profiles"
         leftAction={
@@ -104,14 +111,14 @@ export default function ProfilesScreen() {
       >
         <View
           style={{
-            backgroundColor: colors.pulse[50],
+            backgroundColor: APP_DARK_SURFACE,
             borderRadius: radius.md,
             padding: spacing.md,
             borderWidth: 1,
             borderColor: colors.pulse[100],
           }}
         >
-          <Typography style={{ color: colors.neutral[800], fontSize: 13, lineHeight: 20 }}>
+          <Typography style={{ color: colors.white, fontSize: 13, lineHeight: 20 }}>
             Profiles are for in-app display only. They control what appears on My Account and which
             country flag is shown in the app. They do not change your login email or password.
           </Typography>
@@ -137,9 +144,7 @@ export default function ProfilesScreen() {
         </Pressable>
 
         {isLoading ? (
-          <Typography style={{ color: colors.neutral[500], fontSize: 14 }}>
-            Loading profiles…
-          </Typography>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 14 }}>Loading profiles…</Typography>
         ) : null}
 
         {isError ? (
@@ -158,40 +163,38 @@ export default function ProfilesScreen() {
             <View
               key={profile.id}
               style={{
-                backgroundColor: colors.white,
+                backgroundColor: APP_CARD_BG,
                 borderRadius: radius.md,
                 padding: spacing.md,
                 borderWidth: 1,
-                borderColor: colors.neutral[200],
+                borderColor: APP_DARK_SURFACE,
                 gap: spacing.sm,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
                 <CountryFlagBadge countryCode={profile.country} />
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Typography
-                    style={{ color: colors.neutral[950], fontSize: 16, fontWeight: '700' }}
-                  >
+                  <Typography style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
                     {formatProfileName(profile) || 'Untitled profile'}
                   </Typography>
-                  <Typography style={{ color: colors.neutral[500], fontSize: 13 }}>
+                  <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }}>
                     {profile.displayEmail || 'No display email'}
                   </Typography>
-                  <Typography style={{ color: colors.neutral[500], fontSize: 13 }}>
+                  <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }}>
                     {[profile.city, countryLabel(profile.country)].filter(Boolean).join(' · ')}
                   </Typography>
                 </View>
                 {profile.isDefault ? (
                   <View
                     style={{
-                      backgroundColor: colors.pulse[50],
+                      backgroundColor: APP_DARK_SURFACE,
                       paddingHorizontal: spacing.sm,
                       paddingVertical: 4,
                       borderRadius: radius.full,
                     }}
                   >
                     <Typography
-                      style={{ color: colors.pulse[700], fontSize: 12, fontWeight: '700' }}
+                      style={{ color: colors.pulse[300], fontSize: 12, fontWeight: '700' }}
                     >
                       {justSetDefault ? 'Default ✓' : 'Default'}
                     </Typography>
@@ -214,8 +217,8 @@ export default function ProfilesScreen() {
                       minHeight: 40,
                       borderRadius: radius.sm,
                       borderWidth: 1,
-                      borderColor: isSettingDefault ? colors.pulse[300] : colors.neutral[300],
-                      backgroundColor: isSettingDefault ? colors.pulse[50] : colors.white,
+                      borderColor: isSettingDefault ? colors.pulse[300] : APP_DARK_SURFACE,
+                      backgroundColor: APP_INPUT_BG,
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexDirection: 'row',
@@ -226,11 +229,11 @@ export default function ProfilesScreen() {
                     {isSettingDefault ? (
                       <ActivityIndicator size="small" color={colors.pulse[600]} />
                     ) : (
-                      <Check size={16} color={colors.neutral[800]} strokeWidth={2.2} />
+                      <Check size={16} color={colors.white} strokeWidth={2.2} />
                     )}
                     <Typography
                       style={{
-                        color: isSettingDefault ? colors.pulse[700] : colors.neutral[800],
+                        color: isSettingDefault ? colors.pulse[300] : colors.white,
                         fontSize: 13,
                         fontWeight: '600',
                       }}
@@ -250,17 +253,15 @@ export default function ProfilesScreen() {
                     minHeight: 40,
                     borderRadius: radius.sm,
                     borderWidth: 1,
-                    borderColor: colors.neutral[300],
+                    borderColor: APP_DARK_SURFACE,
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexDirection: 'row',
                     gap: 6,
                   }}
                 >
-                  <Pencil size={15} color={colors.neutral[800]} strokeWidth={2.2} />
-                  <Typography
-                    style={{ color: colors.neutral[800], fontSize: 13, fontWeight: '600' }}
-                  >
+                  <Pencil size={15} color={colors.white} strokeWidth={2.2} />
+                  <Typography style={{ color: colors.white, fontSize: 13, fontWeight: '600' }}>
                     Edit
                   </Typography>
                 </Pressable>

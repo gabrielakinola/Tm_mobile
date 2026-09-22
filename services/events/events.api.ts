@@ -38,6 +38,13 @@ export function buildCreateEventFormData(input: CreateEventInput): FormData {
   appendIfPresent(formData, 'seatMapUrl', input.seatMapUrl);
   appendIfPresent(formData, 'price', input.price);
   appendIfPresent(formData, 'fee', input.fee);
+  formData.append('paymentMethod', input.paymentMethod?.trim() ?? '');
+  formData.append('cardLast4', input.cardLast4?.trim() ?? '');
+  formData.append('cardHolderName', input.cardHolderName?.trim() ?? '');
+  formData.append('billingStreet', input.billingStreet?.trim() ?? '');
+  formData.append('billingCity', input.billingCity?.trim() ?? '');
+  formData.append('billingState', input.billingState?.trim() ?? '');
+  formData.append('billingPostalCode', input.billingPostalCode?.trim() ?? '');
 
   if (input.image.kind === 'remote') {
     formData.append('imageUrl', input.image.url);

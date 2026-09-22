@@ -1,7 +1,13 @@
 import { Pressable, View } from 'react-native';
 import { Image } from 'expo-image';
-import { Eye, EyeOff, Pencil, Ticket, Trash2 } from 'lucide-react-native';
+import { Eye, EyeOff, Pencil, Receipt, Ticket, Trash2 } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import type { MyEventSummary } from '@/services/events/types';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -21,6 +27,7 @@ function formatEventDate(value: string): string {
 export interface ManageEventCardProps {
   event: MyEventSummary;
   onView: () => void;
+  onReceipt: () => void;
   onEdit: () => void;
   onToggleHidden: () => void;
   onDelete: () => void;
@@ -31,6 +38,7 @@ export interface ManageEventCardProps {
 export function ManageEventCard({
   event,
   onView,
+  onReceipt,
   onEdit,
   onToggleHidden,
   onDelete,
@@ -42,10 +50,10 @@ export function ManageEventCard({
   return (
     <View
       style={{
-        backgroundColor: colors.white,
+        backgroundColor: APP_CARD_BG,
         borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         overflow: 'hidden',
         flexDirection: 'row',
         minHeight: 104,
@@ -65,7 +73,7 @@ export function ManageEventCard({
             <Typography
               style={{
                 flex: 1,
-                color: colors.neutral[950],
+                color: colors.white,
                 fontSize: 16,
                 fontWeight: '700',
               }}
@@ -79,43 +87,50 @@ export function ManageEventCard({
                   paddingHorizontal: spacing.sm,
                   paddingVertical: 2,
                   borderRadius: radius.sm,
-                  backgroundColor: colors.neutral[100],
+                  backgroundColor: APP_DARK_BG,
                 }}
               >
-                <Typography style={{ color: colors.neutral[600], fontSize: 11, fontWeight: '700' }}>
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 11, fontWeight: '700' }}>
                   Hidden
                 </Typography>
               </View>
             ) : null}
           </View>
-          <Typography style={{ color: colors.neutral[500], fontSize: 13 }} numberOfLines={1}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }} numberOfLines={1}>
             {event.venue}
           </Typography>
-          <Typography style={{ color: colors.neutral[600], fontSize: 12 }}>
+          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
             {formatEventDate(event.eventDate)}
             {event.eventTime ? ` · ${event.eventTime}` : ''}
             {` · ${event.ticketCount} ticket${event.ticketCount === 1 ? '' : 's'}`}
           </Typography>
         </Pressable>
 
-        <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: 'auto' }}>
+        <View
+          style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: 'auto' }}
+        >
           <IconAction
             label="View"
-            icon={<Ticket size={16} color={colors.pulse[700]} strokeWidth={2.2} />}
+            icon={<Ticket size={16} color={colors.pulse[400]} strokeWidth={2.2} />}
             onPress={onView}
           />
           <IconAction
+            label="View receipt"
+            icon={<Receipt size={16} color={colors.pulse[400]} strokeWidth={2.2} />}
+            onPress={onReceipt}
+          />
+          <IconAction
             label="Edit"
-            icon={<Pencil size={16} color={colors.pulse[700]} strokeWidth={2.2} />}
+            icon={<Pencil size={16} color={colors.pulse[400]} strokeWidth={2.2} />}
             onPress={onEdit}
           />
           <IconAction
             label={isHidden ? 'Unhide' : 'Hide'}
             icon={
               isHidden ? (
-                <Eye size={16} color={colors.pulse[700]} strokeWidth={2.2} />
+                <Eye size={16} color={colors.pulse[400]} strokeWidth={2.2} />
               ) : (
-                <EyeOff size={16} color={colors.pulse[700]} strokeWidth={2.2} />
+                <EyeOff size={16} color={colors.pulse[400]} strokeWidth={2.2} />
               )
             }
             onPress={onToggleHidden}
@@ -160,7 +175,7 @@ function IconAction({
         borderRadius: radius.sm,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: destructive ? colors.error[50] : colors.pulse[50],
+        backgroundColor: destructive ? 'rgba(239, 68, 68, 0.18)' : APP_DARK_SURFACE,
         opacity: disabled ? 0.6 : 1,
       }}
     >
