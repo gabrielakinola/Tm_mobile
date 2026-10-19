@@ -6,11 +6,16 @@ export interface AdminUserSummary {
   email: string;
   accountName: string;
   accessType: AccessType;
+  pendingAccessType?: AccessType | null;
   role: 'USER';
   subscriptionExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
   defaultProfile: DefaultProfileSummary | null;
+  /** Transfers created today in the admin's local timezone. */
+  transfersToday: number;
+  /** Screenshots + recordings today in the admin's local timezone. */
+  capturesToday: number;
 }
 
 export interface AdminUserDetail extends AdminUserSummary {
@@ -25,6 +30,7 @@ export interface AdminUserDetail extends AdminUserSummary {
     enableMinTicketsInterruption: boolean;
     minTicketsPerTransfer: string;
     enableTransferAcceptanceAuthorization: boolean;
+    enableTicketScreenshotBlocking: boolean;
   };
 }
 
@@ -37,8 +43,12 @@ export interface CreateAdminUserResponse extends AdminUserSummary {
   password: string;
 }
 
-export async function listAdminUsersRequest(): Promise<AdminUserSummary[]> {
-  const response = await apiClient.get<AdminUserSummary[]>('/admin/users');
+export async function listAdminUsersRequest(
+  timezoneOffsetMinutes = new Date().getTimezoneOffset(),
+): Promise<AdminUserSummary[]> {
+  const response = await apiClient.get<AdminUserSummary[]>('/admin/users', {
+    params: { timezoneOffsetMinutes },
+  });
   return response.data;
 }
 
@@ -69,6 +79,29 @@ export async function extendAdminUserSubscriptionRequest(
   return response.data;
 }
 
+export type AdminAccessChangeAction =
+  'upgraded' | 'downgraded' | 'downgrade_scheduled' | 'cancelled_pending';
+
+export type AdminAccessChangeEffective = 'immediate' | 'next_cycle';
+
+export interface ChangeAdminUserAccessResponse extends AdminUserSummary {
+  action: AdminAccessChangeAction;
+  effective: AdminAccessChangeEffective;
+  pendingAccessType?: AccessType | null;
+  effectiveAt?: string | null;
+}
+
+export async function changeAdminUserAccessRequest(
+  userId: string,
+  accessType: AccessType,
+): Promise<ChangeAdminUserAccessResponse> {
+  const response = await apiClient.post<ChangeAdminUserAccessResponse>(
+    `/admin/users/${userId}/change-access`,
+    { accessType },
+  );
+  return response.data;
+}
+
 export async function deleteAdminUserRequest(
   userId: string,
 ): Promise<{ success: boolean; id: string }> {
@@ -90,7 +123,20 @@ export interface AdminUserActivityEvent {
   ticketCount: number;
   hidden: boolean;
   createdAt: string;
+  lastTransferAt?: string;
   transferCount: number;
+}
+
+export interface AdminUserTopEvent {
+  id: string;
+  name: string;
+  imageUrl: string;
+  eventDate: string;
+  eventTime: string;
+  venue: string;
+  captureCount: number;
+  screenshotCount: number;
+  recordingCount: number;
 }
 
 export interface AdminUserActivityResponse {
@@ -104,6 +150,8 @@ export interface AdminUserActivityResponse {
   eventCount: number;
   transferCount: number;
   events: AdminUserActivityEvent[];
+  topEvents: AdminUserTopEvent[];
+  topEventCaptureCount: number;
 }
 
 export interface GetAdminUserActivityInput {

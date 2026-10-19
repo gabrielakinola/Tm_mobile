@@ -12,7 +12,8 @@ export const MY_EVENT_CARD_GAP = spacing.xl;
 export const MY_EVENT_IMAGE_ASPECT_RATIO = 1.28;
 
 export const MY_EVENT_CARD_DARK_BG = '#262626';
-const CARD_GOLD = '#9A7B4F';
+const TICKETS_CARD_DETAILS_BG = '#1B1919';
+const CARD_DIVIDER = '#352D2E';
 const VENUE_COLOR = '#C8C8C8';
 const VENUE_FONT_SIZE = 15;
 
@@ -62,12 +63,13 @@ export function MyEventCard({ event, onPress }: MyEventCardProps) {
               containerWidth={cardWidth}
               layout="card"
               shrinkToFit
+              style={{ backgroundColor: TICKETS_CARD_DETAILS_BG }}
             />
           </View>
 
           <View
             style={{
-              backgroundColor: MY_EVENT_CARD_DARK_BG,
+              backgroundColor: TICKETS_CARD_DETAILS_BG,
               paddingHorizontal: spacing.lg,
               paddingTop: spacing.lg,
               paddingBottom: spacing.lg,
@@ -91,7 +93,7 @@ export function MyEventCard({ event, onPress }: MyEventCardProps) {
                 marginTop: spacing.md,
                 width: '50%',
                 height: 3,
-                backgroundColor: CARD_GOLD,
+                backgroundColor: CARD_DIVIDER,
               }}
             />
 

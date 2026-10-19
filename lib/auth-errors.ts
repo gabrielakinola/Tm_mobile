@@ -7,6 +7,7 @@ import type { ActiveSessionConflictError, DeviceChangeLimitError } from '@/servi
 
 export const ACTIVE_SESSION_CONFLICT_CODE = 'ACTIVE_SESSION_CONFLICT';
 export const DEVICE_CHANGE_LIMIT_REACHED_CODE = 'DEVICE_CHANGE_LIMIT_REACHED';
+export const DEVICE_SLOT_LIMIT_REACHED_CODE = 'DEVICE_SLOT_LIMIT_REACHED';
 
 export function isActiveSessionConflict(
   error: unknown,
@@ -25,7 +26,8 @@ export function isDeviceChangeLimitReached(
   return (
     axios.isAxiosError(error) &&
     error.response?.status === 403 &&
-    error.response.data?.code === DEVICE_CHANGE_LIMIT_REACHED_CODE
+    (error.response.data?.code === DEVICE_CHANGE_LIMIT_REACHED_CODE ||
+      error.response.data?.code === DEVICE_SLOT_LIMIT_REACHED_CODE)
   );
 }
 
@@ -47,7 +49,9 @@ export function getLoginErrorMessage(error: unknown): string {
   if (isDeviceChangeLimitReached(error)) {
     return (
       error.response?.data.message ??
-      'You have already changed devices once during this subscription period.'
+      (error.response?.data.code === DEVICE_SLOT_LIMIT_REACHED_CODE
+        ? 'This plan allows access on two devices only.'
+        : 'You have already changed devices once during this subscription period.')
     );
   }
 

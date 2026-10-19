@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Pressable, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Platform, Pressable, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import {
   Input,
@@ -12,15 +10,10 @@ import {
   Typography,
   useToast,
 } from '@/components/ui';
-import { API_BASE_URL } from '@/constants/app';
-import {
-  APP_CARD_BG,
-  APP_DARK_MUTED,
-  APP_DARK_SURFACE,
-  APP_INPUT_BG,
-} from '@/constants/app-surface';
+import { APP_CARD_BG, APP_DARK_MUTED, APP_DARK_SURFACE } from '@/constants/app-surface';
 import { ActiveSessionConflictModal } from '@/features/auth/components/ActiveSessionConflictModal';
 import { DeviceChangeLimitModal } from '@/features/auth/components/DeviceChangeLimitModal';
+import { ForgotPasswordModal } from '@/features/auth/components/ForgotPasswordModal';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas/login.schema';
 import { SubscriptionExpiredModal } from '@/features/subscription/components/SubscriptionExpiredModal';
 import { useForceLogin, useLogin } from '@/hooks/auth/useLogin';
@@ -42,7 +35,6 @@ import {
 } from '@/services/payments/payments.api';
 import { colors, radius, spacing } from '@/theme/tokens';
 
-const API_URL_BANNER_MS = 8000;
 const PAYMENT_STATUS_ATTEMPTS = 6;
 const PAYMENT_STATUS_DELAY_MS = 1500;
 
@@ -79,26 +71,39 @@ export default function LoginScreen() {
   const [deviceLimitMessage, setDeviceLimitMessage] = useState<string | null>(null);
   const [pendingCredentials, setPendingCredentials] = useState<LoginFormValues | null>(null);
   const [forceError, setForceError] = useState<string | null>(null);
-  const [showApiUrlBanner, setShowApiUrlBanner] = useState(true);
+  const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  // Email must stay uncontrolled: iOS Password AutoFill writes natively, then a
+  // controlled `value=""` re-render clears it (shows briefly, then disappears).
+  const emailValueRef = useRef('');
+  const emailInputRef = useRef<TextInput>(null);
+  const [emailFieldError, setEmailFieldError] = useState<string | undefined>();
+  const [password, setPassword] = useState('');
+  const [passwordFieldError, setPasswordFieldError] = useState<string | undefined>();
 
-  useEffect(() => {
-    console.log(`[API] Login screen using base URL: ${API_BASE_URL}`);
-    const timer = setTimeout(() => setShowApiUrlBanner(false), API_URL_BANNER_MS);
-    return () => clearTimeout(timer);
-  }, []);
+  const syncEmail = (text: string) => {
+    emailValueRef.current = text;
+    if (emailFieldError) {
+      setEmailFieldError(undefined);
+    }
+  };
 
-  const {
-    control,
-    handleSubmit,
-    getValues,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
+  /** Autofill often skips onChangeText for username; blur forces onEndEditing. */
+  const flushAutofilledEmail = () =>
+    new Promise<string>((resolve) => {
+      if (emailValueRef.current.trim()) {
+        resolve(emailValueRef.current);
+        return;
+      }
+
+      emailInputRef.current?.focus();
+      requestAnimationFrame(() => {
+        emailInputRef.current?.blur();
+        requestAnimationFrame(() => {
+          resolve(emailValueRef.current);
+        });
+      });
+    });
 
   const closeConflictModal = () => {
     if (forceLoginMutation.isPending) return;
@@ -115,10 +120,27 @@ export default function LoginScreen() {
     setSubscriptionModalDismissed(false);
   };
 
-  const onSubmit = handleSubmit(async (values) => {
+  const onSubmit = async () => {
     setFormError(null);
     setForceError(null);
     setDeviceLimitMessage(null);
+
+    const email = await flushAutofilledEmail();
+    const parsed = loginSchema.safeParse({
+      email,
+      password,
+    });
+
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      setEmailFieldError(fieldErrors.email?.[0]);
+      setPasswordFieldError(fieldErrors.password?.[0]);
+      return;
+    }
+
+    setEmailFieldError(undefined);
+    setPasswordFieldError(undefined);
+    const values = parsed.data;
 
     try {
       await loginMutation.mutateAsync(values);
@@ -149,7 +171,7 @@ export default function LoginScreen() {
       }
       setFormError(getLoginErrorMessage(error));
     }
-  });
+  };
 
   const handleForceLogoutAndContinue = async () => {
     if (!pendingCredentials) return;
@@ -202,7 +224,7 @@ export default function LoginScreen() {
       return;
     }
 
-    const email = getValues('email').trim();
+    const email = (await flushAutofilledEmail()).trim();
     if (!email) {
       setPayError('Enter your email on the login form before paying.');
       return;
@@ -313,26 +335,6 @@ export default function LoginScreen() {
               borderColor: APP_DARK_SURFACE,
             }}
           >
-            {showApiUrlBanner ? (
-              <View
-                style={{
-                  backgroundColor: APP_INPUT_BG,
-                  borderRadius: radius.md,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  borderWidth: 1,
-                  borderColor: APP_DARK_SURFACE,
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  style={{ color: APP_DARK_MUTED, fontSize: 11, lineHeight: 16 }}
-                >
-                  API: {API_BASE_URL}
-                </Typography>
-              </View>
-            ) : null}
-
             <View style={{ gap: spacing.xs }}>
               <Typography variant="h3" style={{ color: colors.white }}>
                 Welcome back
@@ -342,64 +344,70 @@ export default function LoginScreen() {
               </Typography>
             </View>
 
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  tone="dark"
-                  label="Email"
-                  value={value}
-                  onBlur={() => {
-                    onChange(value.trim());
-                    onBlur();
-                  }}
-                  onChangeText={onChange}
-                  error={errors.email?.message}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  textContentType="emailAddress"
-                  autoComplete="email"
-                  leftIcon={<Mail size={18} color={APP_DARK_MUTED} />}
-                />
-              )}
+            <Input
+              ref={emailInputRef}
+              tone="dark"
+              label="Email"
+              // Uncontrolled on purpose — do not pass `value`.
+              defaultValue=""
+              onChangeText={syncEmail}
+              onChange={(event) => {
+                syncEmail(event.nativeEvent.text);
+              }}
+              onEndEditing={(event) => {
+                syncEmail(event.nativeEvent.text);
+              }}
+              error={emailFieldError}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              // Prefer username pairing for Password AutoFill (email is the identifier).
+              {...(Platform.OS === 'ios'
+                ? { textContentType: 'username' as const }
+                : { autoComplete: 'username' as const })}
+              importantForAutofill="yes"
+              leftIcon={<Mail size={18} color={APP_DARK_MUTED} />}
             />
 
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  tone="dark"
-                  label="Password"
-                  value={value}
-                  onBlur={() => {
-                    onChange(value.trim());
-                    onBlur();
-                  }}
-                  onChangeText={onChange}
-                  error={errors.password?.message}
-                  secureTextEntry={!showPassword}
-                  textContentType="password"
-                  autoComplete="password"
-                  leftIcon={<Lock size={18} color={APP_DARK_MUTED} />}
-                  rightIcon={
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                      hitSlop={8}
-                      onPress={() => setShowPassword((current) => !current)}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={18} color={APP_DARK_MUTED} />
-                      ) : (
-                        <Eye size={18} color={APP_DARK_MUTED} />
-                      )}
-                    </Pressable>
-                  }
-                />
-              )}
+            <Input
+              tone="dark"
+              label="Password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (passwordFieldError) {
+                  setPasswordFieldError(undefined);
+                }
+                // Username autofill often only notifies the password field.
+                if (!emailValueRef.current.trim()) {
+                  void flushAutofilledEmail();
+                }
+              }}
+              error={passwordFieldError}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              {...(Platform.OS === 'ios'
+                ? { textContentType: 'password' as const }
+                : { autoComplete: 'password' as const })}
+              importantForAutofill="yes"
+              leftIcon={<Lock size={18} color={APP_DARK_MUTED} />}
+              rightIcon={
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  hitSlop={8}
+                  onPress={() => setShowPassword((current) => !current)}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} color={APP_DARK_MUTED} />
+                  ) : (
+                    <Eye size={18} color={APP_DARK_MUTED} />
+                  )}
+                </Pressable>
+              }
             />
 
             {formError ? (
@@ -411,7 +419,10 @@ export default function LoginScreen() {
             <Pressable
               accessibilityRole="button"
               disabled={loginMutation.isPending}
-              onPress={() => void onSubmit()}
+              onPress={() => {
+                // Ensure we capture autofilled email if the field never emitted onChangeText.
+                void onSubmit();
+              }}
               style={{
                 minHeight: 48,
                 borderRadius: radius.lg,
@@ -432,13 +443,21 @@ export default function LoginScreen() {
               )}
             </Pressable>
 
-            <Pressable disabled accessibilityState={{ disabled: true }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Forgot password"
+              disabled={loginMutation.isPending}
+              onPress={() => {
+                setForgotPasswordEmail(emailValueRef.current.trim());
+                setForgotPasswordVisible(true);
+              }}
+            >
               <Typography
                 variant="body"
                 style={{
                   textAlign: 'center',
-                  color: APP_DARK_MUTED,
-                  opacity: 0.7,
+                  color: colors.pulse[500],
+                  fontWeight: '700',
                 }}
               >
                 Forgot Password
@@ -472,6 +491,22 @@ export default function LoginScreen() {
         onClose={handleSubscriptionExpiredClose}
         onPay={() => void handlePaySubscription()}
       />
+
+      {forgotPasswordVisible ? (
+        <ForgotPasswordModal
+          visible
+          initialEmail={forgotPasswordEmail}
+          onClose={() => setForgotPasswordVisible(false)}
+          onSuccess={() => {
+            setForgotPasswordVisible(false);
+            showToast({
+              variant: 'success',
+              duration: 5000,
+              message: 'Password updated. Please sign in with your new password.',
+            });
+          }}
+        />
+      ) : null}
     </View>
   );
 }

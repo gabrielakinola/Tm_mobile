@@ -13,12 +13,14 @@ export interface FavoritesPolygonIconProps {
   color?: string;
   size?: number;
   strokeWidth?: number;
+  filled?: boolean;
 }
 
 export function FavoritesPolygonIcon({
   color = '#000000',
   size = 22,
   strokeWidth = 1.8,
+  filled = false,
 }: FavoritesPolygonIconProps) {
   const svgStrokeWidth = strokeWidth * (FAVORITES_POLYGON_VIEWBOX.width / size);
 
@@ -32,9 +34,9 @@ export function FavoritesPolygonIcon({
     >
       <Polygon
         points={FAVORITES_POLYGON_POINTS}
-        fill="none"
-        stroke={color}
-        strokeWidth={svgStrokeWidth}
+        fill={filled ? color : 'none'}
+        stroke={filled ? 'none' : color}
+        strokeWidth={filled ? 0 : svgStrokeWidth}
         strokeLinejoin="round"
         strokeMiterlimit={10}
       />

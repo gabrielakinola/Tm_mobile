@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { TextInput, View, type TextInputProps } from 'react-native';
 import { useKeyboardAwareInputFocus } from '@/components/ui/KeyboardAwareScrollView';
 import { APP_DARK_MUTED, APP_DARK_SURFACE, APP_INPUT_BG } from '@/constants/app-surface';
@@ -27,21 +28,24 @@ const sizeMap: Record<InputSize, number> = {
   lg: componentSizes.input.lg,
 };
 
-export function Input({
-  label,
-  error,
-  hint,
-  size = 'md',
-  tone = 'default',
-  leftIcon,
-  rightIcon,
-  containerClassName,
-  className,
-  style,
-  editable = true,
-  onFocus,
-  ...props
-}: InputProps) {
+export const Input = forwardRef<TextInput, InputProps>(function Input(
+  {
+    label,
+    error,
+    hint,
+    size = 'md',
+    tone = 'default',
+    leftIcon,
+    rightIcon,
+    containerClassName,
+    className,
+    style,
+    editable = true,
+    onFocus,
+    ...props
+  },
+  ref,
+) {
   const { theme } = useTheme();
   const height = sizeMap[size];
   const hasError = Boolean(error);
@@ -83,6 +87,7 @@ export function Input({
       >
         {leftIcon}
         <TextInput
+          ref={ref}
           className={cn('flex-1', className)}
           placeholderTextColor={dark ? APP_DARK_MUTED : theme.colors.mutedForeground}
           editable={editable}
@@ -115,4 +120,4 @@ export function Input({
       ) : null}
     </View>
   );
-}
+});

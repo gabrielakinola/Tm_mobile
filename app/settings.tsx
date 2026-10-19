@@ -60,6 +60,7 @@ export default function SettingsScreen() {
   const [minTicketsPerTransfer, setMinTicketsPerTransfer] = useState('');
   const [enableTransferAcceptanceAuthorization, setEnableTransferAcceptanceAuthorization] =
     useState(false);
+  const [enableTicketScreenshotBlocking, setEnableTicketScreenshotBlocking] = useState(false);
   const [savedModalVisible, setSavedModalVisible] = useState(false);
 
   useEffect(() => {
@@ -67,6 +68,8 @@ export default function SettingsScreen() {
       return;
     }
 
+    // Sync local form state when settings are fetched.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from query
     setEnableWalletForTicketTransfers(settingsQuery.data.enableWalletForTicketTransfers);
     setEnableTransferFeeInterruption(settingsQuery.data.enableTransferFeeInterruption);
     setTransferFeeCurrency(normalizeCurrency(settingsQuery.data.transferFeeCurrency));
@@ -76,6 +79,7 @@ export default function SettingsScreen() {
     setEnableTransferAcceptanceAuthorization(
       settingsQuery.data.enableTransferAcceptanceAuthorization,
     );
+    setEnableTicketScreenshotBlocking(settingsQuery.data.enableTicketScreenshotBlocking ?? false);
   }, [settingsQuery.data]);
 
   const saveMutation = useMutation({
@@ -90,6 +94,7 @@ export default function SettingsScreen() {
         enableMinTicketsInterruption,
         minTicketsPerTransfer: enableMinTicketsInterruption ? minTicketsPerTransfer.trim() : '',
         enableTransferAcceptanceAuthorization,
+        enableTicketScreenshotBlocking,
       }),
     onSuccess: (response) => {
       queryClient.setQueryData<UserSettingsResponse>(settingsQueryKey, response);
@@ -167,7 +172,6 @@ export default function SettingsScreen() {
           {enableWalletForTicketTransfers && !isLifetimeAccess ? (
             <View style={{ gap: spacing.lg, marginTop: spacing.sm }}>
               <WalletPassSection
-                accountCreatedAt={authUser?.createdAt ?? new Date(0).toISOString()}
                 walletPassesRemaining={walletPassesRemaining}
                 unlimitedWalletPasses={unlimitedWalletPasses}
                 onPurchaseSuccess={async () => {
@@ -229,6 +233,16 @@ export default function SettingsScreen() {
             description="Recipients must wait for you to authorize before they can accept tickets on the web."
             value={enableTransferAcceptanceAuthorization}
             onValueChange={setEnableTransferAcceptanceAuthorization}
+          />
+        </FormCard>
+
+        <FormCard>
+          <SettingsSectionTitle>Tickets</SettingsSectionTitle>
+          <SettingsToggleRow
+            label="Ticket screenshot blocking"
+            description="View Tickets shows only the artist and venue header. Tickets, Wallet, and Ticket Info stay blank."
+            value={enableTicketScreenshotBlocking}
+            onValueChange={setEnableTicketScreenshotBlocking}
           />
         </FormCard>
 

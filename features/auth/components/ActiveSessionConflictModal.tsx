@@ -55,8 +55,12 @@ export function ActiveSessionConflictModal({
   const deviceLabel = session
     ? `${session.deviceName} (${formatPlatform(String(session.platform))})`
     : 'another device';
+  const isDualDevicePlan = deviceChangePolicy?.mode === 'dual_device_slots';
   const showMonthlyDeviceWarning =
-    deviceChangePolicy?.applies === true && deviceChangePolicy.changesRemaining === 1;
+    !isDualDevicePlan &&
+    deviceChangePolicy?.applies === true &&
+    deviceChangePolicy.changesRemaining === 1;
+  const showDualDeviceNote = isDualDevicePlan;
 
   const handleClose = () => {
     if (loading) return;
@@ -177,6 +181,34 @@ export function ActiveSessionConflictModal({
           <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 19 }}>
             Continuing here will log out of that device immediately.
           </Typography>
+
+          {showDualDeviceNote ? (
+            <View
+              style={{
+                borderRadius: radius.lg,
+                borderWidth: 1,
+                borderColor: colors.pulse[400],
+                backgroundColor: 'rgba(2, 132, 199, 0.14)',
+                padding: spacing.md,
+                gap: spacing.xs,
+              }}
+            >
+              <Typography
+                style={{
+                  color: colors.pulse[300],
+                  fontSize: 13,
+                  fontWeight: '700',
+                  lineHeight: 18,
+                }}
+              >
+                Two-device plan
+              </Typography>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 19 }}>
+                You can alternate between your two registered devices anytime. Only one stays signed
+                in. A third device is not allowed on this plan.
+              </Typography>
+            </View>
+          ) : null}
 
           {showMonthlyDeviceWarning ? (
             <View

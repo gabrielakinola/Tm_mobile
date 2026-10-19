@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- RN Animated.Value interpolate/pass-through is intentional */
 import { useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +40,7 @@ import {
 import { EventDetailTicketCard } from '@/features/my-events/components/EventDetailTicketCard';
 import { YouGotTicketsCard } from '@/features/my-events/components/YouGotTicketsCard';
 import { getSaleLabel, resolveVenueDisplay } from '@/features/my-events/utils/event-detail';
+import { useEventScreenCaptureTracking } from '@/hooks/events/useEventScreenCaptureTracking';
 import { useMyEvent } from '@/hooks/events/useMyEvent';
 import type { EventTicket } from '@/services/events/types';
 import { useAuthStore } from '@/stores/auth-store';
@@ -60,7 +62,13 @@ export default function MyEventDetailScreen() {
   const insets = useSafeAreaInsets();
   const { height: viewportHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: event, isLoading, isError, refetch } = useMyEvent(id);
+  const eventId = typeof id === 'string' ? id : undefined;
+  const { data: event, isLoading, isError, refetch } = useMyEvent(eventId);
+  useEventScreenCaptureTracking({
+    eventId,
+    screen: 'event_detail',
+    enabled: Boolean(event),
+  });
   const defaultProfileFromAuth = useAuthStore((state) => state.user?.defaultProfile);
   const defaultProfileFromStore = useProfileStore((state) => state.defaultProfile);
   const maskedPhone = maskMobileLast4(

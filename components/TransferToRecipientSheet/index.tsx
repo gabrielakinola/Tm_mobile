@@ -27,7 +27,6 @@ import { Typography } from '@/components/ui/Typography';
 import { settingsQueryKey } from '@/features/settings/settings-query-key';
 import { useUserSettings } from '@/hooks/settings/useUserSettings';
 import { useCreateTransfer } from '@/hooks/transfers/useCreateTransfer';
-import { isWalletTrialActive } from '@/lib/subscription';
 import type { EventTicket, TicketMode } from '@/services/events/types';
 import type { UserSettingsResponse } from '@/services/settings/settings.api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -108,7 +107,6 @@ export const TransferToRecipientSheet = memo(
       const createTransfer = useCreateTransfer();
       const userSettingsQuery = useUserSettings();
       const accessType = useAuthStore((state) => state.user?.accessType);
-      const accountCreatedAt = useAuthStore((state) => state.user?.createdAt);
 
       useImperativeHandle(
         ref,
@@ -204,15 +202,14 @@ export const TransferToRecipientSheet = memo(
 
       const shouldShowWalletCreditsModal = useCallback(() => {
         const settings = userSettingsQuery.data;
-        if (accessType !== 'MONTHLY' || !settings?.enableWalletForTicketTransfers) {
-          return false;
-        }
-        // Free trial: transfer immediately — no credits modal.
-        if (accountCreatedAt && isWalletTrialActive(accountCreatedAt)) {
+        if (
+          (accessType !== 'MONTHLY' && accessType !== 'MONTHLY_PLUS_DEVICE') ||
+          !settings?.enableWalletForTicketTransfers
+        ) {
           return false;
         }
         return true;
-      }, [accessType, accountCreatedAt, userSettingsQuery.data]);
+      }, [accessType, userSettingsQuery.data]);
 
       const continueTransfer = useCallback(
         (values: TransferRecipientFormValues) => {

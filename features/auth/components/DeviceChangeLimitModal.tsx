@@ -90,7 +90,7 @@ export function DeviceChangeLimitModal({ visible, message, onClose }: DeviceChan
                 lineHeight: 28,
               }}
             >
-              Device change unavailable
+              Device access unavailable
             </Typography>
             <Typography style={{ color: APP_DARK_MUTED, fontSize: 15, lineHeight: 22 }}>
               {message?.trim() ||

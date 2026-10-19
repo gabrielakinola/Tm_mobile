@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { Typography } from '@/components/ui';
 import { APP_CARD_BG, APP_DARK_MUTED } from '@/constants/app-surface';
 import {

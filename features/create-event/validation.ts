@@ -1,5 +1,9 @@
 export type TicketMode = 'seated' | 'ga';
 
+export type CodeType = 'qr' | 'barcode';
+
+export type CodeAvailability = 'immediate' | 'scheduled';
+
 export interface TicketRow {
   id: string;
   section: string;
@@ -16,6 +20,8 @@ export interface CreateEventFormValues {
   venue: string;
   orderNumber: string;
   ticketMode: TicketMode;
+  codeAvailability: CodeAvailability;
+  codeAvailableDate: string;
   tickets: TicketRow[];
 }
 
@@ -33,6 +39,7 @@ export interface CreateEventFormErrors {
   purchaseTime?: string;
   venue?: string;
   orderNumber?: string;
+  codeAvailableDate?: string;
   tickets?: Record<string, TicketFieldErrors>;
 }
 
@@ -70,6 +77,10 @@ export function validateCreateEventForm(values: CreateEventFormValues): CreateEv
 
   if (!values.orderNumber.trim()) {
     errors.orderNumber = REQUIRED_MESSAGE;
+  }
+
+  if (values.codeAvailability === 'scheduled' && !values.codeAvailableDate.trim()) {
+    errors.codeAvailableDate = REQUIRED_MESSAGE;
   }
 
   const ticketErrors: Record<string, TicketFieldErrors> = {};

@@ -1,5 +1,9 @@
 export type TicketMode = 'seated' | 'ga';
 
+export type CodeType = 'qr' | 'barcode';
+
+export type CodeAvailability = 'immediate' | 'scheduled';
+
 export type EventListStatus = 'all' | 'upcoming' | 'past';
 
 export interface EventTicket {
@@ -38,6 +42,9 @@ export interface CreatedEvent {
   orderNumber: string;
   saleLabel: string;
   ticketMode: TicketMode;
+  codeType: CodeType;
+  codeAvailability: CodeAvailability;
+  codeAvailableDate: string;
   tickets: EventTicket[];
   hidden?: boolean;
   createdAt: string;
@@ -82,6 +89,9 @@ export interface CreateEventInput {
   orderNumber: string;
   saleLabel: string;
   ticketMode: TicketMode;
+  codeType: CodeType;
+  codeAvailability: CodeAvailability;
+  codeAvailableDate?: string;
   tickets: EventTicket[];
   image: EventImageInput;
 }

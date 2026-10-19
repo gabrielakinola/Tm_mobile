@@ -37,6 +37,8 @@ const wordTextStyle = {
   fontSize: FONT_SIZE,
   lineHeight: LINE_HEIGHT,
   fontWeight: '700' as const,
+  includeFontPadding: false,
+  textAlignVertical: 'center' as const,
 };
 
 function wait(ms: number) {
@@ -101,10 +103,7 @@ function ShimmerTerm({
   const containerStyle = width > 0 ? { width } : undefined;
 
   return (
-    <View
-      collapsable={false}
-      style={[{ height: LINE_HEIGHT, alignSelf: 'flex-start', overflow: 'hidden' }, containerStyle]}
-    >
+    <View collapsable={false} style={[{ height: LINE_HEIGHT, overflow: 'hidden' }, containerStyle]}>
       <Text style={[wordTextStyle, { color: WHITE }]} numberOfLines={1}>
         {term}
       </Text>
@@ -249,13 +248,23 @@ export function HomeSearchPlaceholder() {
   }, [brush, slide]);
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: LINE_HEIGHT,
+        flexShrink: 0,
+      }}
+    >
       <Text
         style={{
           color: GREY,
           fontSize: FONT_SIZE,
           lineHeight: LINE_HEIGHT,
+          height: LINE_HEIGHT,
           fontWeight: '500',
+          includeFontPadding: false,
+          textAlignVertical: 'center',
         }}
       >
         Search for{' '}
@@ -265,16 +274,15 @@ export function HomeSearchPlaceholder() {
         style={{
           height: LINE_HEIGHT,
           overflow: 'hidden',
-          alignSelf: 'flex-start',
           ...(viewportWidth > 0 ? { width: viewportWidth } : {}),
         }}
       >
-        <Animated.View style={[{ alignSelf: 'flex-start' }, reelStyle]}>
+        <Animated.View style={reelStyle}>
           <ShimmerTerm term={TERMS[currentIndex]} brush={brush} width={currentWidth} />
           <View
             style={{
               height: LINE_HEIGHT,
-              ...(incomingWidth > 0 ? { width: incomingWidth } : { alignSelf: 'flex-start' }),
+              ...(incomingWidth > 0 ? { width: incomingWidth } : {}),
             }}
           >
             <Text

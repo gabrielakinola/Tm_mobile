@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  changeAdminUserAccessRequest,
   createAdminUserRequest,
   deleteAdminUserRequest,
   extendAdminUserSubscriptionRequest,
@@ -9,6 +10,7 @@ import {
   type AdminUserActivitySort,
   type CreateAdminUserInput,
 } from '@/services/admin/admin.api';
+import type { AccessType } from '@/services/auth/types';
 
 export const adminUsersQueryKey = ['admin', 'users'] as const;
 
@@ -21,9 +23,11 @@ export function adminUserActivityQueryKey(
 }
 
 export function useAdminUsers() {
+  const timezoneOffsetMinutes = new Date().getTimezoneOffset();
+
   return useQuery({
-    queryKey: adminUsersQueryKey,
-    queryFn: listAdminUsersRequest,
+    queryKey: [...adminUsersQueryKey, timezoneOffsetMinutes],
+    queryFn: () => listAdminUsersRequest(timezoneOffsetMinutes),
   });
 }
 
@@ -79,6 +83,19 @@ export function useExtendAdminUserSubscription() {
   return useMutation({
     mutationFn: (userId: string) => extendAdminUserSubscriptionRequest(userId),
     onSuccess: async (_data, userId) => {
+      await queryClient.invalidateQueries({ queryKey: adminUsersQueryKey });
+      await queryClient.invalidateQueries({ queryKey: [...adminUsersQueryKey, userId] });
+    },
+  });
+}
+
+export function useChangeAdminUserAccess() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, accessType }: { userId: string; accessType: AccessType }) =>
+      changeAdminUserAccessRequest(userId, accessType),
+    onSuccess: async (_data, { userId }) => {
       await queryClient.invalidateQueries({ queryKey: adminUsersQueryKey });
       await queryClient.invalidateQueries({ queryKey: [...adminUsersQueryKey, userId] });
     },

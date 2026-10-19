@@ -1,10 +1,25 @@
 import type { AccessType, AuthUser } from '@/services/auth/types';
 
 export const MONTHLY_SUBSCRIPTION_NGN = 30_000;
+/** Two single monthly seats would be ₦60,000; this plan saves ₦10,000. */
+export const MONTHLY_PLUS_DEVICE_SUBSCRIPTION_NGN = 50_000;
 export const LATE_RENEWAL_FEE_PER_DAY_NGN = 500;
-export const GRACE_PERIOD_DAYS = 3;
-export const WALLET_TRIAL_DAYS = 7;
+/** Days after expiry before late fees start accumulating. */
+export const GRACE_PERIOD_DAYS = 1;
+/** Starter wallet-pass credits granted when a user is onboarded. */
+export const INITIAL_FREE_WALLET_PASSES = 3;
 export const WALLET_PASS_PRICE_NGN = 2_500;
+
+export function isSubscriptionAccessType(accessType: AccessType): boolean {
+  return accessType === 'MONTHLY' || accessType === 'MONTHLY_PLUS_DEVICE';
+}
+
+export function getSubscriptionFeeNgn(accessType: AccessType): number {
+  if (accessType === 'MONTHLY_PLUS_DEVICE') {
+    return MONTHLY_PLUS_DEVICE_SUBSCRIPTION_NGN;
+  }
+  return MONTHLY_SUBSCRIPTION_NGN;
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -42,7 +57,7 @@ export function isMonthlySubscriptionExpired(
   user: Pick<AuthUser, 'accessType' | 'subscriptionExpiresAt'>,
   now = new Date(),
 ): boolean {
-  if (user.accessType !== 'MONTHLY') {
+  if (!isSubscriptionAccessType(user.accessType)) {
     return false;
   }
 
@@ -58,7 +73,7 @@ export function isMonthlySubscriptionActive(
   user: Pick<AuthUser, 'accessType' | 'subscriptionExpiresAt'>,
   now = new Date(),
 ): boolean {
-  return user.accessType === 'MONTHLY' && !isMonthlySubscriptionExpired(user, now);
+  return isSubscriptionAccessType(user.accessType) && !isMonthlySubscriptionExpired(user, now);
 }
 
 /** Full calendar days after the expiry date (local), when already expired. */
@@ -73,10 +88,14 @@ export function getDaysAfterExpiry(expiresAt: string | null, now = new Date()): 
   return Math.max(0, Math.round((nowDay.getTime() - expiryDay.getTime()) / DAY_MS));
 }
 
-export function isInGracePeriod(expiresAt: string | null, now = new Date()): boolean {
+export function isInGracePeriod(
+  expiresAt: string | null,
+  now = new Date(),
+  accessType: AccessType = 'MONTHLY',
+): boolean {
   if (
     !expiresAt ||
-    !isMonthlySubscriptionExpired({ accessType: 'MONTHLY', subscriptionExpiresAt: expiresAt }, now)
+    !isMonthlySubscriptionExpired({ accessType, subscriptionExpiresAt: expiresAt }, now)
   ) {
     return false;
   }
@@ -116,8 +135,12 @@ export function getLateRenewalFee(expiresAt: string | null, now = new Date()): n
   return getLateRenewalFeeDays(expiresAt, now) * LATE_RENEWAL_FEE_PER_DAY_NGN;
 }
 
-export function getOutstandingAmount(expiresAt: string | null, now = new Date()): number {
-  return MONTHLY_SUBSCRIPTION_NGN + getLateRenewalFee(expiresAt, now);
+export function getOutstandingAmount(
+  expiresAt: string | null,
+  now = new Date(),
+  accessType: AccessType = 'MONTHLY',
+): number {
+  return getSubscriptionFeeNgn(accessType) + getLateRenewalFee(expiresAt, now);
 }
 
 export function getDaysSinceExpiry(expiresAt: string | null, now = new Date()): number {
@@ -147,61 +170,6 @@ export function getSubscriptionDaysLeftTone(daysLeft: number): SubscriptionDaysL
     return 'warning';
   }
   return 'danger';
-}
-
-export function getWalletTrialEndsAt(accountCreatedAt: string): Date | null {
-  const created = new Date(accountCreatedAt);
-  if (Number.isNaN(created.getTime())) {
-    return null;
-  }
-
-  return new Date(created.getTime() + WALLET_TRIAL_DAYS * DAY_MS);
-}
-
-export function getWalletTrialRemainingMs(accountCreatedAt: string, now = new Date()): number {
-  const trialEnds = getWalletTrialEndsAt(accountCreatedAt);
-  if (!trialEnds) {
-    return 0;
-  }
-
-  return Math.max(0, trialEnds.getTime() - now.getTime());
-}
-
-export function formatWalletTrialCountdown(remainingMs: number): string {
-  if (remainingMs <= 0) {
-    return '00:00:00';
-  }
-
-  const totalSeconds = Math.floor(remainingMs / 1000);
-  const days = Math.floor(totalSeconds / 86_400);
-  const hours = Math.floor((totalSeconds % 86_400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const pad = (value: number) => String(value).padStart(2, '0');
-
-  if (days > 0) {
-    return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-  }
-
-  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-}
-
-export function getWalletTrialRemaining(accountCreatedAt: string, now = new Date()): number {
-  const created = new Date(accountCreatedAt);
-  if (Number.isNaN(created.getTime())) {
-    return 0;
-  }
-
-  const trialEnds = new Date(created.getTime() + WALLET_TRIAL_DAYS * DAY_MS);
-  if (now.getTime() >= trialEnds.getTime()) {
-    return 0;
-  }
-
-  return Math.max(0, Math.ceil((trialEnds.getTime() - now.getTime()) / DAY_MS));
-}
-
-export function isWalletTrialActive(accountCreatedAt: string, now = new Date()): boolean {
-  return getWalletTrialRemaining(accountCreatedAt, now) > 0;
 }
 
 export function formatSubscriptionExpiryDate(expiresAt: string | null): string {

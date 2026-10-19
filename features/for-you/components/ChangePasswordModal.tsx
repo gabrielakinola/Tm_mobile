@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -17,6 +17,8 @@ import {
   APP_DARK_SURFACE,
   APP_INPUT_BG,
 } from '@/constants/app-surface';
+import { PasswordStrengthIndicator } from '@/features/auth/components/PasswordStrengthIndicator';
+import { getNewPasswordValidationError } from '@/features/auth/utils/password-strength';
 import { changePasswordRequest } from '@/services/auth/auth.api';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -27,68 +29,6 @@ export interface ChangePasswordModalProps {
 }
 
 type PasswordField = 'current' | 'new' | 'confirm';
-
-function getNewPasswordValidationError(password: string): string | null {
-  if (password.length < 8) {
-    return 'Password must be at least 8 characters long.';
-  }
-  if (!/[A-Z]/.test(password)) {
-    return 'Password must contain at least one uppercase letter.';
-  }
-  if (!/[a-z]/.test(password)) {
-    return 'Password must contain at least one lowercase letter.';
-  }
-  if (!/[0-9]/.test(password)) {
-    return 'Password must contain at least one number.';
-  }
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    return 'Password must contain at least one symbol.';
-  }
-
-  return null;
-}
-
-function getPasswordStrength(password: string): {
-  score: number;
-  label: string;
-  color: string;
-} {
-  const score = [
-    password.length >= 8,
-    /[A-Z]/.test(password),
-    /[a-z]/.test(password),
-    /[0-9]/.test(password),
-    /[^A-Za-z0-9]/.test(password),
-  ].filter(Boolean).length;
-
-  if (score === 5) return { score, label: 'Strong', color: colors.success[500] };
-  if (score >= 3) return { score, label: 'Fair', color: colors.warning[500] };
-  return { score, label: password ? 'Weak' : 'Password strength', color: colors.error[500] };
-}
-
-function PasswordStrengthIndicator({ password }: { password: string }) {
-  const { score, label, color } = getPasswordStrength(password);
-
-  return (
-    <View style={styles.strengthWrap}>
-      <View style={styles.strengthHeader}>
-        <Typography style={styles.strengthLabel}>Password strength</Typography>
-        <Typography style={[styles.strengthValue, { color }]}>{label}</Typography>
-      </View>
-      <View style={styles.strengthBars}>
-        {Array.from({ length: 5 }, (_, index) => (
-          <View
-            key={index}
-            style={[styles.strengthBar, index < score && { backgroundColor: color }]}
-          />
-        ))}
-      </View>
-      <Typography style={styles.strengthHint}>
-        8+ characters, uppercase, lowercase, number, and symbol.
-      </Typography>
-    </View>
-  );
-}
 
 function getErrorMessage(error: unknown): string {
   if (isAxiosError(error)) {
@@ -111,15 +51,6 @@ export function ChangePasswordModal({ visible, onClose, onSuccess }: ChangePassw
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!visible) return;
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setVisibleFields({ current: false, new: false, confirm: false });
-    setError(null);
-  }, [visible]);
 
   const handleClose = () => {
     if (!saving) onClose();
@@ -177,6 +108,10 @@ export function ChangePasswordModal({ visible, onClose, onSuccess }: ChangePassw
             secureTextEntry={!isVisible}
             autoCapitalize="none"
             autoCorrect={false}
+            spellCheck={false}
+            textContentType={field === 'current' ? 'password' : 'newPassword'}
+            autoComplete={field === 'current' ? 'password' : 'new-password'}
+            importantForAutofill="yes"
             editable={!saving}
             style={styles.input}
           />
@@ -353,39 +288,6 @@ const styles = {
     color: colors.white,
     fontSize: 16,
     paddingVertical: spacing.sm,
-  },
-  strengthWrap: {
-    gap: spacing.xs,
-    marginTop: -spacing.xs,
-  },
-  strengthHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  strengthLabel: {
-    color: APP_DARK_MUTED,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  strengthValue: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  strengthBars: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  strengthBar: {
-    flex: 1,
-    height: 5,
-    borderRadius: radius.full,
-    backgroundColor: APP_DARK_SURFACE,
-  },
-  strengthHint: {
-    color: APP_DARK_MUTED,
-    fontSize: 11,
-    lineHeight: 15,
   },
   error: {
     color: colors.error[500],

@@ -23,7 +23,11 @@ import {
 } from '@/features/create-event/components/FormFields';
 import { TicketmasterSearch } from '@/features/create-event/components/ticketmaster-search';
 import { TimePickerField } from '@/features/create-event/components/TimePickerField';
-import { formatEventDateFromIso } from '@/features/create-event/date-utils';
+import {
+  formatEventDateFromIso,
+  parseEventDateValue,
+  toIsoDateString,
+} from '@/features/create-event/date-utils';
 import {
   generateFakeBillingAddress,
   PAYMENT_METHOD_OPTIONS,
@@ -35,6 +39,8 @@ import {
   isTicketComplete,
   isValidImageFile,
   validateCreateEventForm,
+  type CodeAvailability,
+  type CodeType,
   type CreateEventFormErrors,
   type TicketMode,
   type TicketRow,
@@ -59,6 +65,16 @@ const SALE_LABEL_OPTIONS = [
 ];
 
 const INITIAL_TICKETS: TicketRow[] = [{ id: '1', section: '', row: '', seat: '' }];
+
+const CODE_TYPE_OPTIONS = [
+  { key: 'qr', label: 'QR Code' },
+  { key: 'barcode', label: 'Bar code' },
+] as const;
+
+const CODE_AVAILABILITY_OPTIONS = [
+  { key: 'immediate', label: 'Available immediately' },
+  { key: 'scheduled', label: 'Choose a date' },
+] as const;
 
 function createInitialFormState() {
   return {
@@ -88,6 +104,9 @@ function createInitialFormState() {
     saleLabelOption: 'General Sale',
     customSaleLabel: '',
     ticketMode: 'seated' as TicketMode,
+    codeType: 'qr' as CodeType,
+    codeAvailability: 'immediate' as CodeAvailability,
+    codeAvailableDate: '',
     tickets: INITIAL_TICKETS.map((ticket) => ({ ...ticket })),
     nextTicketId: 2,
     eventImage: null as EventImageInput | null,
@@ -164,6 +183,9 @@ export default function CreateEventScreen() {
   const [saleLabelOption, setSaleLabelOption] = useState('General Sale');
   const [customSaleLabel, setCustomSaleLabel] = useState('');
   const [ticketMode, setTicketMode] = useState<TicketMode>('seated');
+  const [codeType, setCodeType] = useState<CodeType>('qr');
+  const [codeAvailability, setCodeAvailability] = useState<CodeAvailability>('immediate');
+  const [codeAvailableDate, setCodeAvailableDate] = useState('');
   const [tickets, setTickets] = useState<TicketRow[]>([
     { id: '1', section: '', row: '', seat: '' },
   ]);
@@ -179,6 +201,8 @@ export default function CreateEventScreen() {
     }
 
     const event = existingEventQuery.data;
+    // Hydrate the edit form once when the existing event loads.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time form hydrate
     setName(event.name);
     setTicketmasterUrl(event.ticketmasterUrl ?? '');
     setEventDate(formatEventDateFromIso(event.eventDate));
@@ -211,6 +235,9 @@ export default function CreateEventScreen() {
       setCustomSaleLabel(savedSaleLabel);
     }
     setTicketMode((event.ticketMode as TicketMode) || 'seated');
+    setCodeType((event.codeType as CodeType) || 'qr');
+    setCodeAvailability((event.codeAvailability as CodeAvailability) || 'immediate');
+    setCodeAvailableDate(formatEventDateFromIso(event.codeAvailableDate ?? ''));
     const mappedTickets =
       event.tickets.length > 0
         ? event.tickets.map((ticket, index) => ({
@@ -260,6 +287,9 @@ export default function CreateEventScreen() {
     setSaleLabelOption(initial.saleLabelOption);
     setCustomSaleLabel(initial.customSaleLabel);
     setTicketMode(initial.ticketMode);
+    setCodeType(initial.codeType);
+    setCodeAvailability(initial.codeAvailability);
+    setCodeAvailableDate(initial.codeAvailableDate);
     setTickets(initial.tickets);
     setNextTicketId(initial.nextTicketId);
     setEventImage(null);
@@ -396,6 +426,8 @@ export default function CreateEventScreen() {
       venue,
       orderNumber,
       ticketMode,
+      codeAvailability,
+      codeAvailableDate,
       tickets,
     });
 
@@ -414,6 +446,8 @@ export default function CreateEventScreen() {
       );
       return;
     }
+
+    const parsedCodeAvailableDate = parseEventDateValue(codeAvailableDate);
 
     const payload = {
       name,
@@ -441,6 +475,12 @@ export default function CreateEventScreen() {
       orderNumber,
       saleLabel: saleLabelOption === 'Custom' ? customSaleLabel : saleLabelOption,
       ticketMode,
+      codeType,
+      codeAvailability,
+      codeAvailableDate:
+        codeAvailability === 'scheduled' && parsedCodeAvailableDate
+          ? toIsoDateString(parsedCodeAvailableDate)
+          : '',
       tickets: tickets.map(({ section, row, seat }) => ({
         section,
         row,
@@ -649,11 +689,6 @@ export default function CreateEventScreen() {
               <View
                 style={{
                   minHeight: 42,
-                  borderWidth: 1,
-                  borderColor: imageError ? colors.error[500] : APP_DARK_SURFACE,
-                  borderRadius: radius.md,
-                  backgroundColor: APP_CARD_BG,
-                  paddingHorizontal: spacing.sm,
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: spacing.sm,
@@ -673,16 +708,28 @@ export default function CreateEventScreen() {
                     {eventImage ? 'Replace File' : 'Choose File'}
                   </Typography>
                 </Pressable>
-                <Typography
+                <View
                   style={{
-                    color: eventImage ? colors.white : APP_DARK_MUTED,
-                    fontSize: 13,
                     flex: 1,
+                    minHeight: 42,
+                    borderWidth: 1,
+                    borderColor: imageError ? colors.error[500] : APP_DARK_SURFACE,
+                    borderRadius: radius.md,
+                    backgroundColor: APP_INPUT_BG,
+                    paddingHorizontal: spacing.md,
+                    justifyContent: 'center',
                   }}
-                  numberOfLines={1}
                 >
-                  {eventImage?.fileName ?? 'no file selected'}
-                </Typography>
+                  <Typography
+                    style={{
+                      color: eventImage ? colors.white : APP_DARK_MUTED,
+                      fontSize: 13,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {eventImage?.fileName ?? 'no file selected'}
+                  </Typography>
+                </View>
               </View>
               {imageError ? (
                 <Typography style={{ color: colors.error[500], fontSize: 12 }}>
@@ -698,9 +745,9 @@ export default function CreateEventScreen() {
 
             <View
               style={{
-                backgroundColor: APP_DARK_SURFACE,
+                backgroundColor: APP_CARD_BG,
                 borderWidth: 1,
-                borderColor: colors.pulse[200],
+                borderColor: '#A3A3A3',
                 borderRadius: radius.md,
                 padding: spacing.md,
               }}
@@ -1158,6 +1205,112 @@ export default function CreateEventScreen() {
                 </Typography>
               </Pressable>
             ) : null}
+          </FormCard>
+
+          <FormCard>
+            <SectionLabel>Code type</SectionLabel>
+            <View
+              style={{
+                flexDirection: 'row',
+                borderWidth: 1,
+                borderColor: APP_DARK_SURFACE,
+                borderRadius: radius.md,
+                overflow: 'hidden',
+              }}
+            >
+              {CODE_TYPE_OPTIONS.map((option) => {
+                const active = codeType === option.key;
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => setCodeType(option.key)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: spacing.sm + 2,
+                      alignItems: 'center',
+                      backgroundColor: active ? colors.pulse[600] : APP_INPUT_BG,
+                    }}
+                  >
+                    <Typography
+                      style={{
+                        color: active ? colors.white : APP_DARK_MUTED,
+                        fontSize: 13,
+                        fontWeight: '700',
+                      }}
+                    >
+                      {option.label}
+                    </Typography>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <SectionLabel>Code availability</SectionLabel>
+            <View
+              style={{
+                flexDirection: 'row',
+                borderWidth: 1,
+                borderColor: APP_DARK_SURFACE,
+                borderRadius: radius.md,
+                overflow: 'hidden',
+              }}
+            >
+              {CODE_AVAILABILITY_OPTIONS.map((option) => {
+                const active = codeAvailability === option.key;
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => {
+                      setCodeAvailability(option.key);
+                      if (option.key === 'immediate') {
+                        clearFieldError('codeAvailableDate');
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      paddingVertical: spacing.sm + 2,
+                      paddingHorizontal: spacing.xs,
+                      alignItems: 'center',
+                      backgroundColor: active ? colors.pulse[600] : APP_INPUT_BG,
+                    }}
+                  >
+                    <Typography
+                      style={{
+                        color: active ? colors.white : APP_DARK_MUTED,
+                        fontSize: 13,
+                        fontWeight: '700',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {option.label}
+                    </Typography>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {codeAvailability === 'immediate' ? (
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, marginTop: -spacing.sm }}>
+                Codes are available immediately, with no date or time delay.
+              </Typography>
+            ) : (
+              <View style={{ gap: spacing.sm }}>
+                <DatePickerField
+                  label="Available date"
+                  required
+                  value={codeAvailableDate}
+                  onChange={(value) => {
+                    setCodeAvailableDate(value);
+                    clearFieldError('codeAvailableDate');
+                  }}
+                  placeholder="Select date"
+                  error={formErrors.codeAvailableDate}
+                />
+                <Typography style={{ color: APP_DARK_MUTED, fontSize: 12 }}>
+                  Available at 12:00 AM in the event location timezone.
+                </Typography>
+              </View>
+            )}
           </FormCard>
 
           <Pressable

@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   TextInput,
@@ -21,6 +20,12 @@ import { ArrowRight, ChevronRight, Search } from 'lucide-react-native';
 import { LocationPinIcon } from '@/components/icons/DiscoverLocationPinIcon';
 import { KeyboardAwareScrollView, Typography } from '@/components/ui';
 import { APP_DARK_BG, APP_DARK_SURFACE, APP_SEARCH_ICON_BG } from '@/constants/app-surface';
+import {
+  HomeEventRailSkeleton,
+  HomeForYouSkeletonRail,
+  HomeJustAnnouncedSkeletonRail,
+  HomeTrendingSkeletonRail,
+} from '@/features/home/components/HomeFeedSkeletons';
 import { HomeForYouCard } from '@/features/home/components/HomeForYouCard';
 import { HomeJustAnnouncedCard } from '@/features/home/components/HomeJustAnnouncedCard';
 import { HomeLastMinuteCard } from '@/features/home/components/HomeLastMinuteCard';
@@ -273,6 +278,8 @@ export default function HomeScreen() {
   const setFloatingActionVisible = (visible: boolean) => {
     if (isFloatingActionVisibleRef.current === visible) return;
     isFloatingActionVisibleRef.current = visible;
+    // Reanimated shared values are intentionally mutated outside React state.
+    // eslint-disable-next-line react-hooks/immutability -- shared value write
     floatingActionY.value = withTiming(visible ? 0 : FLOATING_ACTION_TRAVEL, {
       duration: 260,
       easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
@@ -426,9 +433,7 @@ export default function HomeScreen() {
             </Typography>
           </View>
         ) : isForYouLoading ? (
-          <View style={{ minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator color={colors.white} />
-          </View>
+          <HomeForYouSkeletonRail />
         ) : isForYouError ? (
           <View
             style={{
@@ -529,9 +534,7 @@ export default function HomeScreen() {
             </Typography>
           </View>
           {isTrendingLoading ? (
-            <View style={{ minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator color={colors.white} />
-            </View>
+            <HomeTrendingSkeletonRail columnWidth={trendingColumnWidth} />
           ) : isTrendingError ? (
             <View
               style={{
@@ -630,9 +633,7 @@ export default function HomeScreen() {
               </Typography>
             </View>
           ) : isLastMinuteLoading ? (
-            <View style={{ minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator color={colors.white} />
-            </View>
+            <HomeEventRailSkeleton cardWidth={lastMinuteCardWidth} />
           ) : isLastMinuteError ? (
             <View
               style={{
@@ -721,9 +722,7 @@ export default function HomeScreen() {
               </Typography>
             </View>
           ) : isWeekendLoading ? (
-            <View style={{ minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator color={colors.white} />
-            </View>
+            <HomeEventRailSkeleton cardWidth={lastMinuteCardWidth} />
           ) : isWeekendError ? (
             <View
               style={{
@@ -812,9 +811,7 @@ export default function HomeScreen() {
               </Typography>
             </View>
           ) : isJustAnnouncedLoading ? (
-            <View style={{ minHeight: 120, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator color={colors.white} />
-            </View>
+            <HomeJustAnnouncedSkeletonRail cardWidth={justAnnouncedCardWidth} />
           ) : isJustAnnouncedError ? (
             <View
               style={{

@@ -2,6 +2,13 @@ import { Pressable, Modal as RNModal, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Check, Copy, X } from 'lucide-react-native';
 import { Typography, useToast } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
 import { hapticLight } from '@/lib/haptics';
 import { colors, radius, spacing } from '@/theme/tokens';
 
@@ -36,7 +43,7 @@ function CredentialRow({
         onPress={onCopy}
         style={styles.copyIconButton}
       >
-        <Copy size={18} color={colors.pulse[600]} strokeWidth={2.2} />
+        <Copy size={18} color={colors.pulse[300]} strokeWidth={2.2} />
       </Pressable>
     </View>
   );
@@ -82,7 +89,7 @@ export function UserCreatedCredentialsModal({
               onPress={handleClose}
               style={styles.closeButton}
             >
-              <X size={18} color={colors.neutral[700]} strokeWidth={2.2} />
+              <X size={18} color={APP_DARK_MUTED} strokeWidth={2.2} />
             </Pressable>
           </View>
 
@@ -111,7 +118,7 @@ export function UserCreatedCredentialsModal({
             onPress={() => void copyAll()}
             style={styles.secondaryButton}
           >
-            <Copy size={16} color={colors.pulse[700]} strokeWidth={2.2} />
+            <Copy size={16} color={colors.pulse[300]} strokeWidth={2.2} />
             <Typography style={styles.secondaryLabel}>Copy all details</Typography>
           </Pressable>
 
@@ -132,10 +139,10 @@ const styles = {
     padding: spacing.lg,
   },
   card: {
-    backgroundColor: colors.neutral[0],
+    backgroundColor: APP_CARD_BG,
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: APP_DARK_SURFACE,
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -158,19 +165,19 @@ const styles = {
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.neutral[100],
+    backgroundColor: APP_DARK_BG,
   },
   copy: {
     gap: spacing.sm,
   },
   title: {
-    color: colors.neutral[950],
+    color: colors.white,
     fontSize: 22,
     fontWeight: '700',
     lineHeight: 28,
   },
   message: {
-    color: colors.neutral[600],
+    color: APP_DARK_MUTED,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -182,19 +189,19 @@ const styles = {
     alignItems: 'center',
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: APP_DARK_SURFACE,
     borderRadius: radius.md,
-    backgroundColor: colors.neutral[50],
+    backgroundColor: APP_INPUT_BG,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
   },
   credentialLabel: {
-    color: colors.neutral[500],
+    color: APP_DARK_MUTED,
     fontSize: 12,
     fontWeight: '600',
   },
   credentialValue: {
-    color: colors.neutral[900],
+    color: colors.white,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -204,21 +211,21 @@ const styles = {
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.pulse[50],
+    backgroundColor: 'rgba(2, 108, 223, 0.18)',
   },
   secondaryButton: {
     minHeight: 44,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.pulse[200],
-    backgroundColor: colors.pulse[50],
+    borderColor: APP_DARK_SURFACE,
+    backgroundColor: APP_INPUT_BG,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: spacing.sm,
   },
   secondaryLabel: {
-    color: colors.pulse[700],
+    color: colors.pulse[300],
     fontSize: 14,
     fontWeight: '700',
   },

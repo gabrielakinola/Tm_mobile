@@ -6,7 +6,10 @@ import { FavoritesPolygonIcon } from '@/components/icons/FavoritesPolygonIcon';
 import { Typography } from '@/components/ui';
 import { APP_TRENDING_RANK } from '@/constants/app-surface';
 import type { HomeTrendingItem } from '@/mocks/home-feed';
+import { useTrendingWatchlistStore } from '@/stores/trending-watchlist-store';
 import { colors } from '@/theme/tokens';
+
+const TRENDING_LIKED_FILL = '#FC2DAA';
 
 function TrendingRank({ rank }: { rank: string }) {
   return (
@@ -30,6 +33,9 @@ function TrendingRank({ rank }: { rank: string }) {
 }
 
 export function HomeTrendingRow({ item }: { item: HomeTrendingItem }) {
+  const isLiked = useTrendingWatchlistStore((state) => Boolean(state.likedIds[item.id]));
+  const toggleLiked = useTrendingWatchlistStore((state) => state.toggle);
+
   return (
     <View
       style={{
@@ -83,7 +89,10 @@ export function HomeTrendingRow({ item }: { item: HomeTrendingItem }) {
         <Pressable
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={`Add ${item.name} to watchlist`}
+          accessibilityLabel={
+            isLiked ? `Remove ${item.name} from watchlist` : `Add ${item.name} to watchlist`
+          }
+          onPress={() => toggleLiked(item.id)}
           style={{
             width: 43,
             height: '100%',
@@ -92,7 +101,12 @@ export function HomeTrendingRow({ item }: { item: HomeTrendingItem }) {
             justifyContent: 'center',
           }}
         >
-          <FavoritesPolygonIcon size={21} color={colors.white} strokeWidth={1.9} />
+          <FavoritesPolygonIcon
+            size={21}
+            color={isLiked ? TRENDING_LIKED_FILL : colors.white}
+            strokeWidth={1.9}
+            filled={isLiked}
+          />
         </Pressable>
       </View>
 

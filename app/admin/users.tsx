@@ -1,8 +1,14 @@
 import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronRight, Infinity, LogOut, Plus } from 'lucide-react-native';
+import { ArrowLeftRight, Camera, ChevronRight, Infinity, LogOut, Plus } from 'lucide-react-native';
 import { ErrorState, Header, Typography } from '@/components/ui';
+import {
+  APP_CARD_BG,
+  APP_DARK_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+} from '@/constants/app-surface';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import { useLogout } from '@/hooks/auth/useLogout';
 import { getSubscriptionDaysLeft, getSubscriptionDaysLeftTone } from '@/lib/subscription';
@@ -16,26 +22,26 @@ function DaysLeftBadge({ user }: { user: AdminUserSummary }) {
   const expired = !isLifetime && daysLeft <= 0;
 
   const badgeStyle = isLifetime
-    ? { backgroundColor: colors.neutral[900] }
+    ? { backgroundColor: colors.neutral[800] }
     : expired
-      ? { backgroundColor: colors.error[50] }
+      ? { backgroundColor: 'rgba(239, 68, 68, 0.18)' }
       : tone === 'green'
-        ? { backgroundColor: colors.success[50] }
+        ? { backgroundColor: 'rgba(16, 185, 129, 0.18)' }
         : tone === 'warning'
-          ? { backgroundColor: colors.warning[50] }
-          : { backgroundColor: colors.error[50] };
+          ? { backgroundColor: 'rgba(245, 158, 11, 0.18)' }
+          : { backgroundColor: 'rgba(239, 68, 68, 0.18)' };
 
   const valueColor = isLifetime
     ? colors.white
     : expired
-      ? colors.error[700]
+      ? colors.error[500]
       : tone === 'green'
-        ? colors.success[700]
+        ? colors.success[500]
         : tone === 'warning'
-          ? colors.warning[700]
-          : colors.error[700];
+          ? colors.warning[500]
+          : colors.error[500];
 
-  const captionColor = isLifetime ? colors.neutral[300] : valueColor;
+  const captionColor = isLifetime ? APP_DARK_MUTED : valueColor;
 
   return (
     <View
@@ -72,16 +78,51 @@ function DaysLeftBadge({ user }: { user: AdminUserSummary }) {
   );
 }
 
+function TodayActivityLine({
+  transfersToday,
+  capturesToday,
+}: {
+  transfersToday: number;
+  capturesToday: number;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        marginTop: spacing.xs,
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <ArrowLeftRight size={12} color={APP_DARK_MUTED} strokeWidth={2.2} />
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
+          {transfersToday}
+        </Typography>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Camera size={12} color={APP_DARK_MUTED} strokeWidth={2.2} />
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
+          {capturesToday}
+        </Typography>
+      </View>
+      <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '500' }}>
+        today
+      </Typography>
+    </View>
+  );
+}
+
 function UserRow({ user, onPress }: { user: AdminUserSummary; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       style={{
-        backgroundColor: colors.neutral[0],
+        backgroundColor: APP_CARD_BG,
         borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         padding: spacing.md,
         flexDirection: 'row',
         alignItems: 'center',
@@ -90,17 +131,21 @@ function UserRow({ user, onPress }: { user: AdminUserSummary; onPress: () => voi
     >
       <View style={{ flex: 1, gap: spacing.xs }}>
         <Typography
-          style={{ color: colors.neutral[900], fontSize: 15, fontWeight: '700' }}
+          style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}
           numberOfLines={1}
         >
           {user.email}
         </Typography>
-        <Typography style={{ color: colors.neutral[500], fontSize: 13 }} numberOfLines={1}>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }} numberOfLines={1}>
           {user.accountName}
         </Typography>
+        <TodayActivityLine
+          transfersToday={user.transfersToday ?? 0}
+          capturesToday={user.capturesToday ?? 0}
+        />
       </View>
       <DaysLeftBadge user={user} />
-      <ChevronRight size={18} color={colors.neutral[400]} />
+      <ChevronRight size={18} color={APP_DARK_MUTED} />
     </Pressable>
   );
 }
@@ -112,7 +157,7 @@ export default function AdminUsersScreen() {
   const logoutMutation = useLogout();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.neutral[100] }}>
+    <View style={{ flex: 1, backgroundColor: APP_DARK_BG }}>
       <Header
         title="Manage Users"
         subtitle="App accounts"
@@ -131,10 +176,11 @@ export default function AdminUsersScreen() {
 
       {usersQuery.isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={colors.pulse[600]} />
+          <ActivityIndicator size="large" color={colors.pulse[500]} />
         </View>
       ) : usersQuery.isError ? (
         <ErrorState
+          inverted
           title="Unable to load users"
           message="Check your connection and try again."
           onRetry={() => void usersQuery.refetch()}
@@ -158,7 +204,7 @@ export default function AdminUsersScreen() {
                 marginBottom: spacing.sm,
               }}
             >
-              <Typography style={{ color: colors.neutral[600], fontSize: 13, fontWeight: '600' }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, fontWeight: '600' }}>
                 {usersQuery.data?.length ?? 0} user{(usersQuery.data?.length ?? 0) === 1 ? '' : 's'}
               </Typography>
               <Pressable
@@ -185,10 +231,10 @@ export default function AdminUsersScreen() {
             <View
               style={{ paddingVertical: spacing['2xl'], alignItems: 'center', gap: spacing.sm }}
             >
-              <Typography style={{ color: colors.neutral[700], fontSize: 16, fontWeight: '700' }}>
+              <Typography style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
                 No users yet
               </Typography>
-              <Typography style={{ color: colors.neutral[500], fontSize: 14, textAlign: 'center' }}>
+              <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, textAlign: 'center' }}>
                 Create a monthly or lifetime account to get started.
               </Typography>
             </View>

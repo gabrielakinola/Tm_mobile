@@ -44,6 +44,28 @@ export async function changePasswordRequest(
   return response.data;
 }
 
+export async function requestPasswordResetRequest(email: string): Promise<{ success: true }> {
+  const response = await apiClient.post<{ success: true }>(
+    '/auth/forgot-password',
+    { email: email.trim().toLowerCase() },
+    { timeout: 30000 },
+  );
+  return response.data;
+}
+
+export async function resetPasswordRequest(input: {
+  email: string;
+  otp: string;
+  newPassword: string;
+}): Promise<{ success: true }> {
+  const response = await apiClient.post<{ success: true }>('/auth/reset-password', {
+    email: input.email.trim().toLowerCase(),
+    otp: input.otp.trim(),
+    newPassword: input.newPassword,
+  });
+  return response.data;
+}
+
 export async function getCurrentUserRequest(): Promise<AuthUser> {
   const response = await apiClient.get<AuthUser>('/auth/me');
   return response.data;

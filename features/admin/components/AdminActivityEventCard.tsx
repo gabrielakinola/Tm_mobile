@@ -1,8 +1,14 @@
 import { Pressable, View } from 'react-native';
 import { Image } from 'expo-image';
-import { ArrowLeftRight } from 'lucide-react-native';
+import { ArrowLeftRight, Camera } from 'lucide-react-native';
 import { Typography } from '@/components/ui';
-import type { AdminUserActivityEvent } from '@/services/admin/admin.api';
+import {
+  APP_CARD_BG,
+  APP_DARK_MUTED,
+  APP_DARK_SURFACE,
+  APP_INPUT_BG,
+} from '@/constants/app-surface';
+import type { AdminUserActivityEvent, AdminUserTopEvent } from '@/services/admin/admin.api';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 function formatEventDate(value: string): string {
@@ -18,7 +24,7 @@ function formatEventDate(value: string): string {
   }).format(parsed);
 }
 
-function formatCreatedTime(value: string): string {
+function formatClock(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat('en-US', {
@@ -27,69 +33,105 @@ function formatCreatedTime(value: string): string {
   }).format(date);
 }
 
-export function AdminActivityEventCard({ event }: { event: AdminUserActivityEvent }) {
-  const transferLabel = `${event.transferCount} transfer${event.transferCount === 1 ? '' : 's'}`;
-
+function MetricBadge({ icon, value }: { icon: React.ReactNode; value: number }) {
   return (
     <View
       style={{
-        backgroundColor: colors.white,
-        borderRadius: radius.md,
+        marginTop: spacing.xs,
+        alignSelf: 'flex-start',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 4,
+        borderRadius: radius.full,
+        backgroundColor: 'rgba(2, 108, 223, 0.18)',
+      }}
+    >
+      {icon}
+      <Typography style={{ color: colors.pulse[300], fontSize: 13, fontWeight: '700' }}>
+        {value}
+      </Typography>
+    </View>
+  );
+}
+
+function EventCardShell({ imageUrl, children }: { imageUrl: string; children: React.ReactNode }) {
+  return (
+    <View
+      style={{
+        backgroundColor: APP_CARD_BG,
+        borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.neutral[200],
+        borderColor: APP_DARK_SURFACE,
         overflow: 'hidden',
         flexDirection: 'row',
-        minHeight: 104,
+        minHeight: 100,
       }}
     >
       <Image
-        source={{ uri: event.imageUrl }}
-        style={{ width: 88, alignSelf: 'stretch' }}
+        source={{ uri: imageUrl }}
+        style={{ width: 84, alignSelf: 'stretch' }}
         contentFit="cover"
         transition={150}
       />
-
-      <View style={{ flex: 1, padding: spacing.md, gap: spacing.xs }}>
-        <Typography
-          style={{ color: colors.neutral[950], fontSize: 16, fontWeight: '700' }}
-          numberOfLines={2}
-        >
-          {event.name}
-        </Typography>
-        <Typography style={{ color: colors.neutral[500], fontSize: 13 }} numberOfLines={1}>
-          {event.venue}
-        </Typography>
-        <Typography style={{ color: colors.neutral[600], fontSize: 12 }}>
-          {formatEventDate(event.eventDate)}
-          {event.eventTime ? ` · ${event.eventTime}` : ''}
-          {` · ${event.ticketCount} ticket${event.ticketCount === 1 ? '' : 's'}`}
-        </Typography>
-        {event.createdAt ? (
-          <Typography style={{ color: colors.neutral[400], fontSize: 12 }}>
-            Created {formatCreatedTime(event.createdAt)}
-          </Typography>
-        ) : null}
-
-        <View
-          style={{
-            marginTop: spacing.xs,
-            alignSelf: 'flex-start',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: spacing.sm,
-            paddingVertical: 4,
-            borderRadius: radius.full,
-            backgroundColor: colors.pulse[50],
-          }}
-        >
-          <ArrowLeftRight size={13} color={colors.pulse[700]} strokeWidth={2.4} />
-          <Typography style={{ color: colors.pulse[700], fontSize: 12, fontWeight: '700' }}>
-            {transferLabel}
-          </Typography>
-        </View>
-      </View>
+      <View style={{ flex: 1, padding: spacing.md, gap: 4 }}>{children}</View>
     </View>
+  );
+}
+
+export function AdminActivityEventCard({ event }: { event: AdminUserActivityEvent }) {
+  return (
+    <EventCardShell imageUrl={event.imageUrl}>
+      <Typography
+        style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}
+        numberOfLines={2}
+      >
+        {event.name}
+      </Typography>
+      <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }} numberOfLines={1}>
+        {event.venue}
+      </Typography>
+      <Typography style={{ color: colors.neutral[400], fontSize: 12 }} numberOfLines={1}>
+        {formatEventDate(event.eventDate)}
+        {event.eventTime ? ` · ${event.eventTime}` : ''}
+      </Typography>
+      {event.lastTransferAt ? (
+        <Typography style={{ color: colors.neutral[500], fontSize: 12 }}>
+          Last transfer {formatClock(event.lastTransferAt)}
+        </Typography>
+      ) : null}
+
+      <MetricBadge
+        icon={<ArrowLeftRight size={13} color={colors.pulse[300]} strokeWidth={2.4} />}
+        value={event.transferCount}
+      />
+    </EventCardShell>
+  );
+}
+
+export function AdminTopEventCard({ event }: { event: AdminUserTopEvent }) {
+  return (
+    <EventCardShell imageUrl={event.imageUrl}>
+      <Typography
+        style={{ color: colors.white, fontSize: 15, fontWeight: '700' }}
+        numberOfLines={2}
+      >
+        {event.name}
+      </Typography>
+      <Typography style={{ color: APP_DARK_MUTED, fontSize: 13 }} numberOfLines={1}>
+        {event.venue}
+      </Typography>
+      <Typography style={{ color: colors.neutral[400], fontSize: 12 }} numberOfLines={1}>
+        {formatEventDate(event.eventDate)}
+        {event.eventTime ? ` · ${event.eventTime}` : ''}
+      </Typography>
+
+      <MetricBadge
+        icon={<Camera size={13} color={colors.pulse[300]} strokeWidth={2.4} />}
+        value={event.captureCount}
+      />
+    </EventCardShell>
   );
 }
 
@@ -112,8 +154,8 @@ export function SortChip({
         minHeight: 40,
         borderRadius: radius.md,
         borderWidth: 1,
-        borderColor: selected ? colors.pulse[600] : colors.neutral[200],
-        backgroundColor: selected ? colors.pulse[50] : colors.white,
+        borderColor: selected ? colors.pulse[500] : APP_DARK_SURFACE,
+        backgroundColor: selected ? 'rgba(2, 108, 223, 0.18)' : APP_INPUT_BG,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: spacing.md,
@@ -121,7 +163,7 @@ export function SortChip({
     >
       <Typography
         style={{
-          color: selected ? colors.pulse[700] : colors.neutral[700],
+          color: selected ? colors.pulse[300] : colors.neutral[300],
           fontSize: 13,
           fontWeight: selected ? '700' : '600',
         }}

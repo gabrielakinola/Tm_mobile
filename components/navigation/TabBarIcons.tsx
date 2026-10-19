@@ -225,13 +225,13 @@ export function HomeTabIcon({ size = ICON_SIZE, focused = false }: TabBarIconPro
 
 const WATCHLIST_ACTIVE_FILL = '#B16AF6';
 
-export function WatchlistTabIcon({ color, size = ICON_SIZE, focused = false }: TabBarIconProps) {
+export function WatchlistTabIcon({ size = ICON_SIZE, focused = false }: TabBarIconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 26 26" fill="none">
       <G transform="translate(13 13) scale(1 0.9) translate(-13 -13)">
         <Path
           d="M10.35 3.55 H15.65 C16.95 3.55 17.7 4.35 17.7 5.55 V21.45 L13 17.7 L8.3 21.45 V5.55 C8.3 4.35 9.05 3.55 10.35 3.55 Z"
-          stroke={focused ? WATCHLIST_ACTIVE_FILL : color}
+          stroke={focused ? WATCHLIST_ACTIVE_FILL : '#FFFFFF'}
           strokeWidth={1.3}
           fill={focused ? WATCHLIST_ACTIVE_FILL : 'none'}
           strokeLinejoin="round"

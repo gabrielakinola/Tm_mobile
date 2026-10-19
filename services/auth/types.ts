@@ -1,4 +1,4 @@
-export type AccessType = 'LIFETIME' | 'MONTHLY';
+export type AccessType = 'LIFETIME' | 'MONTHLY' | 'MONTHLY_PLUS_DEVICE';
 
 export type UserRole = 'USER' | 'SUPERADMIN';
 
@@ -46,11 +46,17 @@ export interface ActiveSessionSummary {
   lastActiveAt: string;
 }
 
+export type DeviceChangePolicyMode = 'none' | 'single_device_change' | 'dual_device_slots';
+
 export interface DeviceChangePolicy {
   applies: boolean;
   changeUsed: boolean;
   changesRemaining: number | null;
   cycleEndsAt: string | null;
+  mode?: DeviceChangePolicyMode;
+  maxDevices?: number | null;
+  boundDeviceCount?: number | null;
+  canRegisterNewDevice?: boolean | null;
 }
 
 export interface ActiveSessionConflictError {
@@ -67,7 +73,7 @@ export interface ActiveSessionConflictError {
 export interface DeviceChangeLimitError {
   statusCode: 403;
   message: string;
-  code: 'DEVICE_CHANGE_LIMIT_REACHED';
+  code: 'DEVICE_CHANGE_LIMIT_REACHED' | 'DEVICE_SLOT_LIMIT_REACHED';
   deviceChangePolicy?: DeviceChangePolicy;
   error: string;
   path: string;

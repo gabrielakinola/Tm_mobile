@@ -10,6 +10,7 @@ export interface UserSettingsResponse {
   enableMinTicketsInterruption: boolean;
   minTicketsPerTransfer: string;
   enableTransferAcceptanceAuthorization: boolean;
+  enableTicketScreenshotBlocking: boolean;
 }
 
 export interface UpdateUserSettingsInput {
@@ -20,6 +21,7 @@ export interface UpdateUserSettingsInput {
   enableMinTicketsInterruption?: boolean;
   minTicketsPerTransfer?: string;
   enableTransferAcceptanceAuthorization?: boolean;
+  enableTicketScreenshotBlocking?: boolean;
 }
 
 export async function getUserSettings(): Promise<UserSettingsResponse> {

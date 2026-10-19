@@ -28,6 +28,11 @@ export function buildCreateEventFormData(input: CreateEventInput): FormData {
   formData.append('orderNumber', input.orderNumber.trim());
   formData.append('saleLabel', input.saleLabel.trim());
   formData.append('ticketMode', input.ticketMode);
+  formData.append('codeType', input.codeType);
+  formData.append('codeAvailability', input.codeAvailability);
+  if (input.codeAvailability === 'scheduled') {
+    appendIfPresent(formData, 'codeAvailableDate', input.codeAvailableDate);
+  }
   formData.append('tickets', JSON.stringify(input.tickets));
 
   appendIfPresent(formData, 'entrance', input.entrance);
@@ -128,6 +133,20 @@ export async function sendEventConfirmationEmailRequest(
 ): Promise<{ sent: true; to: string }> {
   const response = await apiClient.post<{ sent: true; to: string }>(
     `/events/${eventId}/confirmation-email`,
+  );
+  return response.data;
+}
+
+export type EventScreenCaptureType = 'screenshot' | 'recording';
+export type EventScreenCaptureScreen = 'event_detail' | 'tickets';
+
+export async function reportEventScreenCaptureRequest(
+  eventId: string,
+  input: { type: EventScreenCaptureType; screen: EventScreenCaptureScreen },
+): Promise<{ success: true }> {
+  const response = await apiClient.post<{ success: true }>(
+    `/events/${eventId}/screen-captures`,
+    input,
   );
   return response.data;
 }

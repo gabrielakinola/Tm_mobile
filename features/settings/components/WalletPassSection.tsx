@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Minus, Plus } from 'lucide-react-native';
 import { Typography, useToast } from '@/components/ui';
@@ -12,13 +12,7 @@ import {
 import { openFlutterwaveCheckout } from '@/lib/flutterwave-checkout';
 import { formatNaira } from '@/lib/format-currency';
 import { hapticLight } from '@/lib/haptics';
-import {
-  formatWalletTrialCountdown,
-  getWalletTrialRemainingMs,
-  isWalletTrialActive,
-  WALLET_PASS_PRICE_NGN,
-  WALLET_TRIAL_DAYS,
-} from '@/lib/subscription';
+import { INITIAL_FREE_WALLET_PASSES, WALLET_PASS_PRICE_NGN } from '@/lib/subscription';
 import {
   getFlutterwavePaymentStatusRequest,
   initiateWalletPassPaymentRequest,
@@ -66,7 +60,6 @@ function getPaymentErrorMessage(error: unknown): string {
 }
 
 interface WalletPassSectionProps {
-  accountCreatedAt: string;
   walletPassesRemaining: number;
   unlimitedWalletPasses: boolean;
   onPurchaseSuccess?: () => void | Promise<void>;
@@ -81,45 +74,19 @@ export function WalletLifetimeExplanation() {
   );
 }
 
-function useWalletTrialCountdown(accountCreatedAt: string) {
-  const [remainingMs, setRemainingMs] = useState(() => getWalletTrialRemainingMs(accountCreatedAt));
-
-  useEffect(() => {
-    setRemainingMs(getWalletTrialRemainingMs(accountCreatedAt));
-
-    if (!isWalletTrialActive(accountCreatedAt)) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setRemainingMs(getWalletTrialRemainingMs(accountCreatedAt));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [accountCreatedAt]);
-
-  return {
-    trialActive: remainingMs > 0,
-    countdown: formatWalletTrialCountdown(remainingMs),
-  };
-}
-
 export function WalletPassSection({
-  accountCreatedAt,
   walletPassesRemaining,
   unlimitedWalletPasses,
   onPurchaseSuccess,
 }: WalletPassSectionProps) {
   const { show: showToast } = useToast();
-  const { trialActive, countdown } = useWalletTrialCountdown(accountCreatedAt);
-  const purchaseEnabled = !trialActive;
   const [passesToBuy, setPassesToBuy] = useState(MIN_PASSES_TO_BUY);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const remainingLabel = unlimitedWalletPasses ? '∞' : String(walletPassesRemaining);
 
   const adjustPasses = (delta: number) => {
-    if (!purchaseEnabled || paying) {
+    if (paying) {
       return;
     }
 
@@ -130,7 +97,7 @@ export function WalletPassSection({
   };
 
   const handleBuyPass = async () => {
-    if (!purchaseEnabled || paying) {
+    if (paying) {
       return;
     }
 
@@ -185,39 +152,10 @@ export function WalletPassSection({
       </Typography>
 
       <Typography style={{ color: APP_DARK_MUTED, fontSize: 13, lineHeight: 20 }}>
-        {WALLET_ACCEPTANCE_EXPLANATION} Each transfer uses 1 pass (
-        {formatNaira(WALLET_PASS_PRICE_NGN)}
-        ), regardless of how many tickets you send, after your {WALLET_TRIAL_DAYS}-day free trial.
+        {WALLET_ACCEPTANCE_EXPLANATION} New accounts start with {INITIAL_FREE_WALLET_PASSES} free
+        passes. Each transfer uses 1 pass ({formatNaira(WALLET_PASS_PRICE_NGN)}), regardless of how
+        many tickets you send. You can buy more anytime.
       </Typography>
-
-      {trialActive ? (
-        <View
-          style={{
-            borderRadius: radius.md,
-            borderWidth: 1,
-            borderColor: APP_DARK_SURFACE,
-            backgroundColor: APP_INPUT_BG,
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.sm + 2,
-            gap: spacing.xs,
-          }}
-        >
-          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, fontWeight: '600' }}>
-            Wallet Pass trial ends in
-          </Typography>
-          <Typography
-            style={{
-              color: colors.pulse[300],
-              fontSize: 20,
-              fontWeight: '700',
-              fontVariant: ['tabular-nums'],
-              letterSpacing: 0.5,
-            }}
-          >
-            {countdown}
-          </Typography>
-        </View>
-      ) : null}
 
       <View
         style={{
@@ -241,26 +179,9 @@ export function WalletPassSection({
       </View>
 
       <View style={{ gap: spacing.xs }}>
-        <View
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-        >
-          <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, fontWeight: '600' }}>
-            Passes to buy
-          </Typography>
-          {!purchaseEnabled ? (
-            <Typography
-              style={{
-                color: APP_DARK_MUTED,
-                fontSize: 11,
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                letterSpacing: 0.4,
-              }}
-            >
-              Pending
-            </Typography>
-          ) : null}
-        </View>
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 14, fontWeight: '600' }}>
+          Passes to buy
+        </Typography>
 
         <View
           style={{
@@ -270,16 +191,15 @@ export function WalletPassSection({
             borderWidth: 1,
             borderColor: APP_DARK_SURFACE,
             borderRadius: radius.md,
-            backgroundColor: purchaseEnabled ? APP_INPUT_BG : APP_DARK_BG,
+            backgroundColor: APP_INPUT_BG,
             paddingHorizontal: spacing.sm,
             paddingVertical: spacing.xs,
-            opacity: purchaseEnabled ? 1 : 0.85,
           }}
         >
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Decrease passes to buy"
-            disabled={!purchaseEnabled || paying || passesToBuy <= MIN_PASSES_TO_BUY}
+            disabled={paying || passesToBuy <= MIN_PASSES_TO_BUY}
             onPress={() => adjustPasses(-1)}
             hitSlop={8}
             style={{
@@ -289,7 +209,7 @@ export function WalletPassSection({
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: APP_DARK_BG,
-              opacity: !purchaseEnabled || paying || passesToBuy <= MIN_PASSES_TO_BUY ? 0.45 : 1,
+              opacity: paying || passesToBuy <= MIN_PASSES_TO_BUY ? 0.45 : 1,
             }}
           >
             <Minus size={18} color={colors.white} strokeWidth={2.2} />
@@ -297,7 +217,7 @@ export function WalletPassSection({
 
           <Typography
             style={{
-              color: purchaseEnabled ? colors.white : APP_DARK_MUTED,
+              color: colors.white,
               fontSize: 18,
               fontWeight: '700',
               fontVariant: ['tabular-nums'],
@@ -311,7 +231,7 @@ export function WalletPassSection({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Increase passes to buy"
-            disabled={!purchaseEnabled || paying || passesToBuy >= MAX_PASSES_TO_BUY}
+            disabled={paying || passesToBuy >= MAX_PASSES_TO_BUY}
             onPress={() => adjustPasses(1)}
             hitSlop={8}
             style={{
@@ -321,22 +241,16 @@ export function WalletPassSection({
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: APP_DARK_BG,
-              opacity: !purchaseEnabled || paying || passesToBuy >= MAX_PASSES_TO_BUY ? 0.45 : 1,
+              opacity: paying || passesToBuy >= MAX_PASSES_TO_BUY ? 0.45 : 1,
             }}
           >
             <Plus size={18} color={colors.white} strokeWidth={2.2} />
           </Pressable>
         </View>
 
-        {purchaseEnabled ? (
-          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, lineHeight: 18 }}>
-            Total: {formatNaira(passesToBuy * WALLET_PASS_PRICE_NGN)}
-          </Typography>
-        ) : (
-          <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, lineHeight: 18 }}>
-            Pass selection unlocks when your free trial ends.
-          </Typography>
-        )}
+        <Typography style={{ color: APP_DARK_MUTED, fontSize: 12, lineHeight: 18 }}>
+          Total: {formatNaira(passesToBuy * WALLET_PASS_PRICE_NGN)}
+        </Typography>
       </View>
 
       {payError ? (
@@ -347,14 +261,14 @@ export function WalletPassSection({
 
       <Pressable
         accessibilityRole="button"
-        disabled={!purchaseEnabled || paying}
+        disabled={paying}
         onPress={() => void handleBuyPass()}
         style={{
           minHeight: 44,
           borderRadius: radius.md,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: purchaseEnabled ? colors.pulse[600] : APP_DARK_SURFACE,
+          backgroundColor: colors.pulse[600],
           opacity: paying ? 0.75 : 1,
         }}
       >
@@ -368,7 +282,7 @@ export function WalletPassSection({
         ) : (
           <Typography
             style={{
-              color: purchaseEnabled ? colors.white : APP_DARK_MUTED,
+              color: colors.white,
               fontSize: 14,
               fontWeight: '700',
             }}

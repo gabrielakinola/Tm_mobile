@@ -362,14 +362,16 @@ export default function ForYouScreen() {
         </View>
       </ScrollView>
 
-      <ChangePasswordModal
-        visible={changePasswordVisible}
-        onClose={() => setChangePasswordVisible(false)}
-        onSuccess={() => {
-          setChangePasswordVisible(false);
-          show({ message: 'Password updated successfully.', variant: 'success' });
-        }}
-      />
+      {changePasswordVisible ? (
+        <ChangePasswordModal
+          visible
+          onClose={() => setChangePasswordVisible(false)}
+          onSuccess={() => {
+            setChangePasswordVisible(false);
+            show({ message: 'Password updated successfully.', variant: 'success' });
+          }}
+        />
+      ) : null}
     </View>
   );
 }
